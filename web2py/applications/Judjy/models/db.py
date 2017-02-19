@@ -28,7 +28,7 @@ if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
     # if NOT running on Google App Engine use SQLite or other DB
     # ---------------------------------------------------------------------
-    db = DAL('mysql://root:ghfuf@127.0.0.1:3306/judjy')
+    db = DAL(myconf.get('db.uri'))
 else:
     # ---------------------------------------------------------------------
     # connect to Google BigTable (optional 'google:datastore://namespace')
