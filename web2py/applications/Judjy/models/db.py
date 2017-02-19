@@ -28,10 +28,7 @@ if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
     # if NOT running on Google App Engine use SQLite or other DB
     # ---------------------------------------------------------------------
-    db = DAL(myconf.get('db.uri'),
-             pool_size=myconf.get('db.pool_size'),
-             migrate_enabled=myconf.get('db.migrate'),
-             check_reserved=['all'])
+    db = DAL('mysql://root:ghfuf@127.0.0.1:3306/judjy')
 else:
     # ---------------------------------------------------------------------
     # connect to Google BigTable (optional 'google:datastore://namespace')
@@ -130,3 +127,7 @@ auth.settings.reset_password_requires_verification = True
 # after defining tables, uncomment below to enable auditing
 # -------------------------------------------------------------------------
 # auth.enable_record_versioning(db)
+
+mail.settings.server = settings.email_server
+mail.settings.sender = settings.email_sender
+mail.settings.login = settings.email_login
