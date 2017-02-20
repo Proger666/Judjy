@@ -40,7 +40,8 @@ def user_search():
 
 
 def products():
-    form= SQLTABLE
+    pattern = request.vars.product_s_str.capitalize() + '%'
+    rows = db(db.t_product.f_name.like(pattern)).select()
     return locals()
 
 

@@ -1,3 +1,14 @@
 {{extend "layout.html"}}
 
-{{=SQLTABLE(rows)}}
+<table align="center">
+    {{for row in rows:}}
+        <tr>
+            <td>
+        {{=row.f_name}}
+            </td>
+            <td>
+            {{=row.f_img}}
+            </td>
+            </tr>
+    {{pass}}
+</table>
