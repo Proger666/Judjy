@@ -48,6 +48,8 @@ def products():
 
 
 def product_review():
+    description = db(db.t_product.f_name == request.vars.product_s_str).select(db.t_product.f_description).first()
+    image = db(db.t_product.f_name == request.vars.product_s_str).select(db.t_product.f_image).first()
     return locals()
 
 

@@ -1,3 +1,15 @@
 {{extend "layout.html"}}
 
-
+<table align="center">
+     <tr>
+         <th>
+             {{=request.vars.product_s_str}}
+         </th>
+        <td>
+            <img src="{{=URL('default', 'download', args=image.f_image)}}" width="150" height="150" class="img-responsive img-polaroid">
+        </td>
+         <td>
+             {{=description.f_description}}
+         </td>
+    </tr>
+</table>
