@@ -1,14 +1,17 @@
 {{extend "layout.html"}}
 
-<table align="center">
+<div class="table-responsive">
+
+<table align="center" class="table table-hover">
     {{for row in rows:}}
         <tr>
             <td>
-        {{=row.f_name}}
+                <img src="{{=URL('default', 'download', args=row.f_image)}}" class="img-thumbnail img-responsive" width="200" height="150">
             </td>
-            <td>
-            {{=row.f_img}}
+                <td>
+                {{=row.f_name}}
             </td>
             </tr>
     {{pass}}
 </table>
+</div>
