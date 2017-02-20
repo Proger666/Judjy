@@ -43,7 +43,7 @@ def products():
     pattern = request.vars.product_s_str.capitalize() + '%'
     rows = db(db.t_product.f_name.like(pattern)).select()
     if len(rows) == 1:
-        redirect(URL('default', 'product_review', vars=dict(product_s_str=request.vars.product_s_str)))
+        redirect(URL('default', 'product_review', vars=dict(product_s_str=rows[0].f_name)))
     return locals()
 
 
