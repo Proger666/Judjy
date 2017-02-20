@@ -14,6 +14,8 @@ def index():
     random_product = db().select(db.t_product.ALL, limitby=(0, 1), orderby='<random>')
     form = FORM(INPUT(_name='product_s_str', _title='Введите наименование товара или услуги', _class='form-control input-normal' ,_style='center-block form-control input-lg',_id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
                 SPAN(INPUT(_type='submit', _class='btn btn-lg btn-primary'), _class='input-group-btn'))
+    if request.vars.product_s_str is not None:
+        redirect(URL('default', 'products', vars=dict(product_s_str=request.vars.product_s_str)))
     return locals()
 
 
@@ -38,6 +40,7 @@ def user_search():
 
 
 def products():
+    form= SQLTABLE
     return locals()
 
 
