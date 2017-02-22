@@ -269,6 +269,7 @@
 'Verify Password': 'Повторите пароль',
 'Videos': 'Videos',
 'View': 'View',
+'View %(entity)s': 'View %(entity)s',
 'Welcome': 'Welcome',
 'Welcome to web2py': 'Добро пожаловать в web2py',
 'Welcome to web2py!': 'Welcome to web2py!',
