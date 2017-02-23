@@ -19,11 +19,8 @@ def index():
                       _id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
                 SPAN(INPUT(_type='submit', _class='btn btn-lg btn-primary'), _class='input-group-btn'))
     count = db.t_product.id.count()
-    # Select all records and count em by ID result is tuple
-    count_list = db(db.t_product.id == db.t_review.f_product).select(db.t_product.id, count,
-                                                                     groupby=db.t_product.f_name)
-    # sort Tuple and find maximum value + id filter to id
-    top_prod = sorted(count_list, key=lambda x: x, reverse=True)[0].t_product.id
+    # Select all records and count em by ID result list then filter by count in descending order take 0 row and extract id
+    top_prod = db(db.t_product.id == db.t_review.f_product).select(db.t_product.id, count,groupby=db.t_product.id, orderby=~count)[0].t_product.id
     # get latest comment from top_prod based on dateadded field and get only 1 item (limit by)
     latest_comm = db(db.t_review.f_product == top_prod).select(db.t_review.f_text, orderby=~db.t_review.f_dateadded,
                                                                limitby=(0, 1)).first()
