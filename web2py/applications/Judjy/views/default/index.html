@@ -38,8 +38,8 @@
           <div class="panel panel-default">
             <div class="panel-heading"><h3 align="center">Самое горячее</h3></div>
             <div class="panel-body">
+                <h4 align="center"><b>{{=db(db.t_product.id == top_prod).select(db.t_product.f_name).first().f_name}}</b></h4>
                 <img src="{{=URL('default', 'download', args=top_img.f_image)}}" class="img-rounded img-responsive" width="350" height="50">
-                <h4><b>{{=db(db.t_product.id == top_prod).select(db.t_product.f_name).first().f_name}}</b></h4>
                 <p>
                     {{=latest_comm.f_text}}
                 </p>
