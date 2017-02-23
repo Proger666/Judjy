@@ -12,8 +12,19 @@ def call(): return service()
 ### end requires
 def index():
     random_product = db().select(db.t_product.ALL, limitby=(0, 1), orderby='<random>')
-    form = FORM(INPUT(_name='product_s_str', _title='Введите наименование товара или услуги', _class='form-control input-normal' ,_style='center-block form-control input-lg',_id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
+    form = FORM(INPUT(_name='product_s_str', _title='Введите наименование товара или услуги',
+                      _class='form-control input-normal', _style='center-block form-control input-lg',
+                      _id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
                 SPAN(INPUT(_type='submit', _class='btn btn-lg btn-primary'), _class='input-group-btn'))
+    count = db.t_product.id.count()
+    # Select all records and cout em by ID result is tuple
+    count_list = db(db.t_product.id == db.t_review.f_product).select(db.t_product.id, count,
+                                                                     groupby=db.t_product.f_name)
+    # sort Tuple and find maximum value + id filter to id
+    top_prod = sorted(count_list, key=lambda x: x, reverse=True)[0].t_product.id
+    # get latest comment from top_prod based on dateadded field and get only 1 item (limit by)
+    latest_comm = db(db.t_review.f_product == top_prod).select(db.t_review.f_text, orderby=~db.t_review.f_dateadded,
+                                                               limitby=(0, 1)).first()
     top_img = []
     if request.vars.product_s_str is not None:
         redirect(URL('default', 'products', vars=dict(product_s_str=request.vars.product_s_str)))
