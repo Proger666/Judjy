@@ -4,8 +4,8 @@
 
 <table align="center" class="table table-hover">
     {{if len(rows) == 0:}}
-    {{=DIV(P("Ииииии ничаво", _align='center', _class='h3'), IMG(_src=URL('static', 'images/sad_but_true.png'), _class='img-responsive col-md-offset-5 col-md-2', _align='center'), _class='col-md-10')
-
+    {{=DIV(P("Ииииии ничаво", _align='center', _class='h3'), IMG(_src=URL('static', 'images/sad_but_true.png'),
+        _class='img-responsive col-md-offset-5 col-md-2', _align='center'), _class='col-md-10')
     }}
     {{else:}}
         {{for row in rows:}}
