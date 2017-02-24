@@ -280,5 +280,6 @@
 'You are successfully running web2py': 'You are successfully running web2py',
 'You can modify this application and adapt it to your needs': 'You can modify this application and adapt it to your needs',
 'You visited the url %s': 'You visited the url %s',
+'Искали, искали, не нашли, попробуйте что-нибудь другое !': 'Искали, искали, не нашли, попробуйте что-нибудь другое !',
 'Поискать еще': 'Поискать еще',
 }
