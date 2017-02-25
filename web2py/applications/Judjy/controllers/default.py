@@ -2,6 +2,7 @@
 ### required - do no delete
 from operator import itemgetter
 
+
 def user(): return dict(form=auth())
 
 
@@ -13,17 +14,24 @@ def call(): return service()
 
 ### end requires
 def index():
+    stars = ["DNISHE",  "nu_takoe", "s_pivkom" "pre_awesome", "Awesome"]
     random_product = db().select(db.t_product.ALL, limitby=(0, 1), orderby='<random>')
     form = FORM(INPUT(_name='product_s_str', _title='Введите наименование товара или услуги',
                       _class='form-control input-normal', _style='center-block form-control input-lg',
                       _id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
                 SPAN(INPUT(_type='submit', _class='btn btn-lg btn-primary'), _class='input-group-btn'))
     count = db.t_product.id.count()
-    # Select all records and count em by ID result list then filter by count in descending order take 0 row and extract id
-    top_prod = db(db.t_product.id == db.t_review.f_product).select(db.t_product.id, count,groupby=db.t_product.id, orderby=~count)[0].t_product.id
-    # get latest comment from top_prod based on dateadded field and get only 1 item (limit by)
-    latest_comm = db(db.t_review.f_product == top_prod).select(db.t_review.f_text, orderby=~db.t_review.f_dateadded,
+    # Select all records and count em by ID result list then filter by count in descending order take 0 row and
+    # extract id
+    top_prod = db(db.t_product.id == db.t_review.f_product).select(db.t_product.id, count, groupby=db.t_product.id,
+                                                                   orderby=~count)[0].t_product.id
+    # get latest comment from top_prod, based on dateadded field and get only 1 item (limit by), select only fields
+    # withing record (first)
+    latest_comm = db(db.t_review.f_product == top_prod).select(db.t_review.f_text, db.t_review.f_stars,
+                                                               db.t_review.f_user, orderby=~db.t_review.f_dateadded,
                                                                limitby=(0, 1)).first()
+    # needs to to be rebuilded
+    latest_comm.f_stars = URL('static', 'images/ratings/' + stars[latest_comm.f_stars - 1] + ".png")
     top_img = db(db.t_product.id == top_prod).select(db.t_product.f_image).first()
 
     if request.vars.product_s_str is not None:
