@@ -3,7 +3,9 @@
 from operator import itemgetter
 
 
-def user(): return dict(form=auth())
+
+def user():
+    return dict(form=auth())
 
 
 def download(): return response.download(request, db)
@@ -14,7 +16,7 @@ def call(): return service()
 
 ### end requires
 def index():
-    stars = ["DNISHE",  "nu_takoe", "s_pivkom" "pre_awesome", "Awesome"]
+    stars = ["DNISHE", "nu_takoe", "s_pivkom" "pre_awesome", "Awesome"]
     random_product = db().select(db.t_product.ALL, limitby=(0, 1), orderby='<random>')
     form = FORM(INPUT(_name='product_s_str', _title='Введите наименование товара или услуги',
                       _class='form-control input-normal', _style='center-block form-control input-lg',
