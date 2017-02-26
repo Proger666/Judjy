@@ -3,15 +3,6 @@
 from operator import itemgetter
 
 
-def select():
-    """
-    Display log event into usage_statistics table.
-    """
-    db.usage_statistics.id.readable = False
-    table = SQLFORM.grid(db.usage_statistics, orderby=~db.usage_statistics.time_stamp, ui='jquery-ui', formstyle='divs')
-    return dict(table=table)
-
-
 def user():
     return dict(form=auth())
 
