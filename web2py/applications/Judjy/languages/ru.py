@@ -248,6 +248,7 @@
 'The output of the file is a dictionary that was rendered by the view %s': 'The output of the file is a dictionary that was rendered by the view %s',
 'The Views': 'The Views',
 'This App': 'This App',
+'This email already has an account': 'This email already has an account',
 'Time in Cache (h:m:s)': 'Time in Cache (h:m:s)',
 'Timestamp': 'Отметка времени',
 'Too short': 'Too short',
@@ -281,5 +282,6 @@
 'You can modify this application and adapt it to your needs': 'You can modify this application and adapt it to your needs',
 'You visited the url %s': 'You visited the url %s',
 'Искали, искали, не нашли, попробуйте что-нибудь другое !': 'Искали, искали, не нашли, попробуйте что-нибудь другое !',
+'Надо бы что-то ввести таки... Попробуй еще раз ?': 'Надо бы что-то ввести таки... Попробуй еще раз ?',
 'Поискать еще': 'Поискать еще',
 }

@@ -2,7 +2,7 @@
 
 <div class="table-responsive">
 
-<table align="center" class="table table-hover">
+<table class="table table-hover center-block">
     {{if len(rows) == 0:}}
     {{=DIV(TABLE(TBODY(
     TR(TD(IMG(_src=URL('static', 'images/prod_404.jpg'), _class="img-responsive col-md-8 col-md-offset-11"))),
@@ -10,6 +10,9 @@
     TR(TD(IMG(_src=URL('static', 'images/sad_but_true.png'),_class='img-responsive col-md-offset-12 col-md-3', _align='center')))),
     TR(TD(BUTTON(T('Поискать еще'),_onclick="window.location= '" + URL('default', 'index') + ";'", _class="btn btn-primary btn-block")), _class="col-md-5 col-md-offset-12")))
 
+    }}
+    {{elif request.vars.product_s_str is "":}}
+    {{=DIV((P(T("Надо бы что-то ввести таки... Попробуй еще раз ?"))), _class='srch-empty_text text_size_32')
     }}
     {{else:}}
         {{for row in rows:}}

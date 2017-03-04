@@ -13,6 +13,8 @@ def download(): return response.download(request, db)
 def call(): return service()
 
 
+
+
 ### end requires
 def index():
     stars = ["DNISHE", "nu_takoe", "s_pivkom" "pre_awesome", "Awesome"]
@@ -61,8 +63,9 @@ def user_search():
 
 
 def products():
+
     pattern = request.vars.product_s_str.capitalize() + '%'
-    rows = db(db.t_product.f_name.like(pattern)).select()
+    rows = db(db.t_product.f_name.like(pattern)).select(orderby=db.t_product.f_name)
     if len(rows) == 1:
         redirect(URL('default', 'product_review', vars=dict(product_s_str=rows[0].f_name)))
     return locals()

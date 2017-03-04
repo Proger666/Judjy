@@ -50,6 +50,10 @@ else:
 # none otherwise. a pattern can be 'controller/function.extension'
 # -------------------------------------------------------------------------
 response.generic_patterns = ['*'] if request.is_local else []
+
+
+# Pagination
+
 # -------------------------------------------------------------------------
 # choose a style for forms
 # -------------------------------------------------------------------------
