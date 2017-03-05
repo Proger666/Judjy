@@ -81,29 +81,7 @@
     </nav>
 	</div>
 </div>
-    <div class="container-full" style="">
-    <div class="row">
-        <div class="col-lg-12 text-center v-center">
-            <br class="">
-            <form class="col-lg-12">
-
-                <div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
-                <form action="{{=URL('default', 'products')}}" method="get" class="input-group input-group-lg col-sm-offset-4 col-sm-4">
-                <input name="product_s_str" type="text"/>
-                <input type="submit" value="Submit" class="input-group input-group-lg col-sm-offset-4 col-sm-4"/>
-                </form>
-
-                </div>
-                <div style="position: absolute;" id="suggestions"
-                         class="suggestions"></div>
-            </form>
-        </div>
-    </div>
-    <script>
-    jQuery("#product_s_str").keyup(function(){
-      ajax('{{=URL('default', 'product_selector')}}', ['product_s_str'], 'suggestions')});
-    </script>
-    <!-- Masthead ===================================== -->    
+    <!-- Masthead ===================================== -->
     {{block header}}
     {{end}}
     <!-- Main ========================================= -->
@@ -117,6 +95,7 @@
             {{end}}
         </div>
       {{pass}}
+            {{include "search_string.html"}}
 
       <div class="{{=middle_column}}">
         {{block center}}

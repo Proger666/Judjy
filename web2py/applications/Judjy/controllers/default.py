@@ -13,15 +13,17 @@ def download(): return response.download(request, db)
 def call(): return service()
 
 
+def search_string():
+    random_product = db().select(db.t_product.ALL, limitby=(0, 1), orderby='<random>')
+    return FORM(DIV(INPUT(_name='product_s_str', _title='Введите наименование товара или услуги',
+                      _class='form-control input-normal', _style='center-block form-control input-lg',
+                      _id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
+                SPAN(INPUT(_type='submit', _class='btn btn-lg btn-primary'), _class='input-group-btn'),_class="input-group input-group-lg col-sm-offset-4 col-sm-4")).xml()
+
 
 ### end requires
 def index():
     stars = ["DNISHE", "nu_takoe", "s_pivkom" "pre_awesome", "Awesome"]
-    random_product = db().select(db.t_product.ALL, limitby=(0, 1), orderby='<random>')
-    form = FORM(INPUT(_name='product_s_str', _title='Введите наименование товара или услуги',
-                      _class='form-control input-normal', _style='center-block form-control input-lg',
-                      _id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
-                SPAN(INPUT(_type='submit', _class='btn btn-lg btn-primary'), _class='input-group-btn'))
     count = db.t_product.id.count()
     # Select all records and count em by ID result list then filter by count in descending order take 0 row and
     # extract id
@@ -62,7 +64,6 @@ def user_search():
 
 
 def products():
-
     pattern = request.vars.product_s_str.capitalize() + '%'
     rows = db(db.t_product.f_name.like(pattern)).select(orderby=db.t_product.f_name)
     if len(rows) == 1:

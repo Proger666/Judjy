@@ -7,8 +7,7 @@
     {{=DIV(TABLE(TBODY(
     TR(TD(IMG(_src=URL('static', 'images/prod_404.jpg'), _class="img-responsive col-md-8 col-md-offset-11"))),
     TR(TD(P(T("Искали, искали, не нашли, попробуйте что-нибудь другое !"), _align="center",_class="col-md-10 col-md-offset-10 h3"))),
-    TR(TD(IMG(_src=URL('static', 'images/sad_but_true.png'),_class='img-responsive col-md-offset-12 col-md-3', _align='center')))),
-    TR(TD(BUTTON(T('Поискать еще'),_onclick="window.location= '" + URL('default', 'index') + ";'", _class="btn btn-primary btn-block")), _class="col-md-5 col-md-offset-12")))
+    TR(TD(IMG(_src=URL('static', 'images/sad_but_true.png'),_class='img-responsive col-md-offset-12 col-md-3', _align='center'))))))
 
     }}
     {{elif request.vars.product_s_str is "":}}
