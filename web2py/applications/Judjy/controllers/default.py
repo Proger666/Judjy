@@ -14,7 +14,6 @@ def call(): return service()
 
 
 
-
 ### end requires
 def index():
     stars = ["DNISHE", "nu_takoe", "s_pivkom" "pre_awesome", "Awesome"]

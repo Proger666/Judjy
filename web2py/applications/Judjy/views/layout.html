@@ -84,14 +84,14 @@
     <div class="container-full" style="">
     <div class="row">
         <div class="col-lg-12 text-center v-center">
-             <h1 class="">Критикуй</h1>
-            <p class="lead" contenteditable="false">Сервис Критукуй - оставляй отзывы обо всех товарах и услугах</p>
             <br class="">
             <form class="col-lg-12">
 
                 <div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
-                {{=form}}
-
+                <form action="{{=URL('default', 'products')}}" method="get" class="input-group input-group-lg col-sm-offset-4 col-sm-4">
+                <input name="product_s_str" type="text"/>
+                <input type="submit" value="Submit" class="input-group input-group-lg col-sm-offset-4 col-sm-4"/>
+                </form>
 
                 </div>
                 <div style="position: absolute;" id="suggestions"
