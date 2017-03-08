@@ -16,3 +16,7 @@ def index():
 
 def error():
     return dict()
+
+
+def smuzau():
+    return locals()
