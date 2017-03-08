@@ -15,3 +15,37 @@ body {
 footer {
     margin: 50px 0;
 }
+
+.user-actions__rating .rating-stars {
+    margin: 0 12px 0 7px;
+}
+
+.header__user-actions * {
+    vertical-align: middle;
+}
+
+.rating-stars {
+    width: 160px;
+    height: 22px;
+    margin: 0 auto;
+}
+
+.half-star {
+    display: inline-block;
+    float: left;
+    width: 11px;
+    height: 22px;
+    background-image: url(//assets.vivino.com/assets/rating/stars-xl@2x-ae519d53edbd67da979926422f8b5b0b.png);
+    background-size: 800%;
+    background-repeat: no-repeat;
+}
+
+.star-left{margin-left:5px}
+.star-left.icon-blank{background-position:0% 50%}
+.star-left.icon-full{background-position:57% 50%}
+.star-left.icon-untouched{background-position:86% 50%}
+.star-right{margin-right:5px}.star-right.icon-blank{background-position:43.7% 50%}
+.star-right.icon-half{background-position:43.4% 50%}
+.star-right.icon-full{background-position:71.5% 50%}
+.star-right.icon-untouched{background-position:100% 50%}
+.star-right:after{width:11px;height:22px;margin-left:11px;content:"";display:block}
