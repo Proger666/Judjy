@@ -17,17 +17,32 @@ db.define_table('t_review_archive', db.t_review,
 db.define_table('t_category',
                 Field('f_name', type='string',
                       label=T('name')),
-                auth.signature,
                 format='%(f_name)s',
                 migrate=settings.migrate)
 ########################################
+
 db.define_table('t_taste',
                 Field('f_name', type='string',
                       label=T('name')),
-                auth.signature,
                 format='%(f_name)s',
                 migrate=settings.migrate)
 ########################################
+db.define_table('t_smoothie',
+                Field('f_name', type='string',
+                    label=T('Name')),
+                Field('f_taste', db.t_taste,
+                      label=T('Taste')),
+                Field('f_image', 'upload'),
+                Field('f_img', type='blob',
+                      label=T('img')),
+                format='%(f_name)s',
+                migrate=settings.migrate)
+########################################
+db.define_table('t_smoothie_category',
+                Field('f_smoothie', db.t_smoothie),
+                Field('f_cat', db.t_category))
+########################################
+
 db.define_table('t_fruit',
                 Field('f_category', db.t_category),
                 Field('f_name', type='string',

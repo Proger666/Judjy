@@ -1,148 +1,4 @@
-timestamp: 2017-03-08T15:47:32.462000
-CREATE TABLE auth_user(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    first_name CHAR(128),
-    last_name CHAR(128),
-    email CHAR(512),
-    password CHAR(512),
-    registration_key CHAR(512),
-    reset_password_key CHAR(512),
-    registration_id CHAR(512)
-);
-success!
-timestamp: 2017-03-08T15:47:32.492000
-CREATE TABLE auth_group(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    role CHAR(512),
-    description TEXT
-);
-success!
-timestamp: 2017-03-08T15:47:32.509000
-CREATE TABLE auth_membership(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:47:32.545000
-CREATE TABLE auth_permission(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE  ,
-    name CHAR(512),
-    table_name CHAR(512),
-    record_id INTEGER
-);
-success!
-timestamp: 2017-03-08T15:47:32.574000
-CREATE TABLE auth_event(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    time_stamp TIMESTAMP,
-    client_ip CHAR(512),
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    origin CHAR(512),
-    description TEXT
-);
-success!
-timestamp: 2017-03-08T15:47:32.597000
-CREATE TABLE auth_cas(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    created_on TIMESTAMP,
-    service CHAR(512),
-    ticket CHAR(512),
-    renew CHAR(1)
-);
-success!
-timestamp: 2017-03-08T15:49:21.198000
-CREATE TABLE t_review(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_fulltext CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:49:21.230000
-CREATE TABLE t_review_archive(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_fulltext CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    current_record INTEGER REFERENCES t_review (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:49:21.257000
-CREATE TABLE t_category(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_name CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:49:21.280000
-CREATE TABLE t_taste(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_name CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:49:21.303000
-CREATE TABLE t_fruit(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_category INTEGER REFERENCES t_category (id) ON DELETE CASCADE  ,
-    f_name CHAR(512),
-    f_taste INTEGER REFERENCES t_taste (id) ON DELETE CASCADE  ,
-    f_image CHAR(512),
-    f_img BLOB
-);
-success!
-timestamp: 2017-03-08T15:49:21.326000
-CREATE TABLE t_fruit_category(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_fruit INTEGER REFERENCES t_fruit (id) ON DELETE CASCADE  ,
-    f_cat INTEGER REFERENCES t_category (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:49:21.350000
-CREATE TABLE t_recipe(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_name CHAR(512),
-    f_date CHAR(512),
-    f_fulltext CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:49:21.374000
-CREATE TABLE t_recipe_archive(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    f_name CHAR(512),
-    f_date CHAR(512),
-    f_fulltext CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    current_record INTEGER REFERENCES t_recipe (id) ON DELETE CASCADE  
-);
-success!
-timestamp: 2017-03-08T15:52:48.413000
+timestamp: 2017-03-08T16:37:08.926000
 CREATE TABLE auth_user(
     id INT AUTO_INCREMENT NOT NULL,
     first_name VARCHAR(128),
@@ -155,7 +11,7 @@ CREATE TABLE auth_user(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.463000
+timestamp: 2017-03-08T16:37:08.983000
 CREATE TABLE auth_group(
     id INT AUTO_INCREMENT NOT NULL,
     role VARCHAR(512),
@@ -163,7 +19,7 @@ CREATE TABLE auth_group(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.511000
+timestamp: 2017-03-08T16:37:09.040000
 CREATE TABLE auth_membership(
     id INT AUTO_INCREMENT NOT NULL,
     user_id INT  , INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
@@ -171,7 +27,7 @@ CREATE TABLE auth_membership(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.579000
+timestamp: 2017-03-08T16:37:09.100000
 CREATE TABLE auth_permission(
     id INT AUTO_INCREMENT NOT NULL,
     group_id INT  , INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
@@ -181,7 +37,7 @@ CREATE TABLE auth_permission(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.623000
+timestamp: 2017-03-08T16:37:09.151000
 CREATE TABLE auth_event(
     id INT AUTO_INCREMENT NOT NULL,
     time_stamp DATETIME,
@@ -192,7 +48,7 @@ CREATE TABLE auth_event(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.673000
+timestamp: 2017-03-08T16:37:09.202000
 CREATE TABLE auth_cas(
     id INT AUTO_INCREMENT NOT NULL,
     user_id INT  , INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
@@ -203,7 +59,7 @@ CREATE TABLE auth_cas(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.719000
+timestamp: 2017-03-08T16:37:09.246000
 CREATE TABLE t_review(
     id INT AUTO_INCREMENT NOT NULL,
     f_fulltext VARCHAR(512),
@@ -215,7 +71,7 @@ CREATE TABLE t_review(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.770000
+timestamp: 2017-03-08T16:37:09.308000
 CREATE TABLE t_review_archive(
     id INT AUTO_INCREMENT NOT NULL,
     f_fulltext VARCHAR(512),
@@ -228,31 +84,21 @@ CREATE TABLE t_review_archive(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.832000
+timestamp: 2017-03-08T16:37:09.377000
 CREATE TABLE t_category(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
-    is_active CHAR(1),
-    created_on DATETIME,
-    created_by INT  , INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
-    modified_on DATETIME,
-    modified_by INT  , INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.896000
+timestamp: 2017-03-08T16:37:09.423000
 CREATE TABLE t_taste(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
-    is_active CHAR(1),
-    created_on DATETIME,
-    created_by INT  , INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
-    modified_on DATETIME,
-    modified_by INT  , INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:48.958000
+timestamp: 2017-03-08T16:37:09.473000
 CREATE TABLE t_fruit(
     id INT AUTO_INCREMENT NOT NULL,
     f_category INT  , INDEX f_category__idx (f_category), FOREIGN KEY (f_category) REFERENCES t_category (id) ON DELETE CASCADE,
@@ -263,7 +109,7 @@ CREATE TABLE t_fruit(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:49.014000
+timestamp: 2017-03-08T16:37:09.523000
 CREATE TABLE t_fruit_category(
     id INT AUTO_INCREMENT NOT NULL,
     f_fruit INT  , INDEX f_fruit__idx (f_fruit), FOREIGN KEY (f_fruit) REFERENCES t_fruit (id) ON DELETE CASCADE,
@@ -271,7 +117,7 @@ CREATE TABLE t_fruit_category(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:49.062000
+timestamp: 2017-03-08T16:37:09.579000
 CREATE TABLE t_recipe(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
@@ -285,7 +131,7 @@ CREATE TABLE t_recipe(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-03-08T15:52:49.108000
+timestamp: 2017-03-08T16:37:09.629000
 CREATE TABLE t_recipe_archive(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
@@ -299,4 +145,46 @@ CREATE TABLE t_recipe_archive(
     current_record INT  , INDEX current_record__idx (current_record), FOREIGN KEY (current_record) REFERENCES t_recipe (id) ON DELETE CASCADE,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2017-03-08T16:46:33.962000
+CREATE TABLE t_smoothie_category(
+    id INT AUTO_INCREMENT NOT NULL,
+    f_name VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2017-03-08T16:49:00.527000
+CREATE TABLE t_smoothie(
+    id INT AUTO_INCREMENT NOT NULL,
+    f_category INT  , INDEX f_category__idx (f_category), FOREIGN KEY (f_category) REFERENCES t_category (id) ON DELETE CASCADE,
+    f_name VARCHAR(512),
+    f_taste INT  , INDEX f_taste__idx (f_taste), FOREIGN KEY (f_taste) REFERENCES t_taste (id) ON DELETE CASCADE,
+    f_image VARCHAR(512),
+    f_img LONGBLOB,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2017-03-08T16:49:00.575000
+ALTER TABLE t_smoothie_category ADD f_smoothie INT  , ADD INDEX f_smoothie__idx (f_smoothie), ADD FOREIGN KEY (f_smoothie) REFERENCES t_smoothie (id) ON DELETE CASCADE;
+success!
+timestamp: 2017-03-08T16:49:00.679000
+ALTER TABLE t_smoothie_category ADD f_cat INT  , ADD INDEX f_cat__idx (f_cat), ADD FOREIGN KEY (f_cat) REFERENCES t_category (id) ON DELETE CASCADE;
+success!
+timestamp: 2017-03-08T16:49:00.823000
+ALTER TABLE t_smoothie_category DROP COLUMN f_name;
+success!
+timestamp: 2017-03-08T16:49:41.619000
+ALTER TABLE t_smoothie DROP COLUMN f_category;
+timestamp: 2017-03-08T16:49:42.662000
+ALTER TABLE t_smoothie DROP COLUMN f_category;
+timestamp: 2017-03-08T16:49:43.979000
+ALTER TABLE t_smoothie DROP COLUMN f_category;
+timestamp: 2017-03-08T16:49:46.933000
+ALTER TABLE t_smoothie DROP COLUMN f_category;
+timestamp: 2017-03-08T16:49:51.232000
+ALTER TABLE t_smoothie DROP COLUMN f_category;
+timestamp: 2017-03-08T16:49:56.942000
+ALTER TABLE t_smoothie DROP COLUMN f_category;
+timestamp: 2017-03-08T16:53:57.213000
+ALTER TABLE t_smoothie DROP COLUMN f_category;
 success!
