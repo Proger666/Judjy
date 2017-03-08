@@ -74,3 +74,4 @@ db.define_table('t_recipe',
 
 db.define_table('t_recipe_archive', db.t_recipe,
                 Field('current_record', 'reference t_recipe', readable=False, writable=False))
+########################################
