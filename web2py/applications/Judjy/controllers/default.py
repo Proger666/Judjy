@@ -20,6 +20,8 @@ def search_string():
                       _id='product_s_str', _placeholder=random_product.records[0].t_product.f_name),
                 SPAN(INPUT(_type='submit', _class='btn btn-lg btn-primary'), _class='input-group-btn'),_class="input-group input-group-lg col-sm-offset-4 col-sm-4")).xml()
 
+def search():
+    return str(1)
 
 ### end requires
 def index():
