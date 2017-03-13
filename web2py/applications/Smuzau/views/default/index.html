@@ -19,6 +19,7 @@
                 {{for ingr in ingredients:}}
                 <div class="col-md-2">
                 <img src="{{=URL('default', 'download', args=ingr.f_image)}}" id='{{=ingr.id}}' class="img-responsive img-rounded fruits-main checked">
+                    <p>{{=ingr.id}}</p>
                 </div>
             {{pass}}
             </div>
@@ -26,8 +27,11 @@
                 <div class="col-md-4">
                     {{for smuz in smuzs:}}
                     <div class="thumbnail">
-                        <p>{{=smuz.f_name}}</p>
+                        <p>{{=smuz.f_image}}</p>
                     </div>
+                        <div class="smuz-recipe">
+                            <p>{{=smuz.f_name}}</p>
+                            </div>
                     {{pass}}
 
                 </div>
@@ -39,10 +43,31 @@
         $(this).removeClass('selected').addClass('unselected');
     } else {
         $(this).removeClass('unselected').addClass('selected');
-        $('img').attr('')
-        ajax('{{=URL('default', 'filter_smuz', vars=dict(ingr_id=ingr.id))}}',[this.id], 'thumbnail');
+        ajax('{{=URL('default', 'filter_smuz')}}' + '?ingr=' + '{{if request.vars.ingr is not None: request.vars.ingr + '%' }}'+ this.id,[], ':eval');
+
+        addQSParm('ingr', 'lal')
     }
 });
+    function addQSParm(name, value) {
+        var re = new RegExp("([?&]" + name + "=)[^&]+", "");
+        var myUrl = window.location.href
 
+        function add(sep) {
+            myUrl += sep + name + "=" + encodeURIComponent(value);
+        }
+
+        function change() {
+            myUrl = myUrl.replace(re, "$1" + encodeURIComponent(value));
+        }
+        if (myUrl.indexOf("?") === -1) {
+            add("?");
+        } else {
+            if (re.test(myUrl)) {
+                change();
+            } else {
+                add("&");
+            }
+        }
+    }
 </script>
 
