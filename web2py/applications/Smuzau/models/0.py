@@ -16,3 +16,5 @@ settings.email_login = ''
 settings.login_method = 'local'
 settings.login_config = ''
 settings.plugins = []
+response.logo = A(IMG(_src=URL('static','images/logo.png'),
+                           _alt=T('In-Smuzau-We-trust')), _href=URL('default', 'index'), _class="navbar-brand", _style="padding:5px")

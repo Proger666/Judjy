@@ -4,6 +4,23 @@
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
  */
 
+.navbar-form .form-control {
+    width: 200px;
+    height: 30px;
+    background: white url(/Smuzau/static/images/search-icon.jpg) no-repeat 3px;
+    padding-left: 24px;
+    margin-top: 1px;
+}
+
+.fruits-main{
+    width: auto;
+    height: 100px;
+}
+.logo {
+    float: left;
+    margin-top: 10px;
+}
+
 body {
     padding-top: 70px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
 }

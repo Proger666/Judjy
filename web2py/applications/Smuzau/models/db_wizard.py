@@ -1,8 +1,12 @@
 ### we prepend t_ to tablenames and f_ to fieldnames for disambiguity
-
-### we prepend t_ to tablenames and f_ to fieldnames for disambiguity
-
-
+########################################
+db.define_table('tag_ingr',
+                Field('name'),
+                format='%(name)s')
+########################################
+db.define_table('tag_smuz',
+                Field('name'),
+                format='%(name)s')
 ########################################
 db.define_table('t_review',
                 Field('f_fulltext', type='string',
@@ -39,15 +43,23 @@ db.define_table('t_smoothie',
                       label=T('img')),
                 Field('f_rating', type='integer',
                       label=T('rating')),
+                Field('tags', 'list:reference tag_smuz'),
+                Field('ingredients', 'list:reference tag_ingr'),
                 format='%(f_name)s',
                 migrate=settings.migrate)
+
+########################################
+db.define_table('t_smoothie_review',
+                Field('f_smoothie', db.t_smoothie),
+                Field('f_review', db.t_review))
 ########################################
 db.define_table('t_smoothie_category',
                 Field('f_smoothie', db.t_smoothie),
                 Field('f_cat', db.t_category))
+
 ########################################
 
-db.define_table('t_fruit',
+db.define_table('t_ingredient',
                 Field('f_name', type='string',
                     label=T('Name')),
                 Field('f_taste', db.t_taste,
@@ -59,8 +71,8 @@ db.define_table('t_fruit',
                 migrate=settings.migrate)
 
 ########################################
-db.define_table('t_fruit_category',
-                Field('f_fruit', db.t_fruit),
+db.define_table('t_ingr_category',
+                Field('f_ingr', db.t_ingredient),
                 Field('f_cat', db.t_category))
 
 ########################################
@@ -79,4 +91,3 @@ db.define_table('t_recipe',
 
 db.define_table('t_recipe_archive', db.t_recipe,
                 Field('current_record', 'reference t_recipe', readable=False, writable=False))
-########################################

@@ -1,0 +1,16 @@
+<style>
+#suggestions { position: relative; }
+.suggestions { background: white; border: solid 1px #55A6C8; }
+.suggestions DIV { padding: 2px 4px 2px 4px; }
+</style>
+
+  <div class="" style="padding: 10px">
+            <div class="center-block" id="search_box"></div>
+        </div>
+    <script>
+    jQuery("#product_s_str").keyup(function(){
+      ajax('{{=URL('default', 'product_selector')}}', ['product_s_str'], 'suggestions')});
+    $(document).ready(function () {
+        ajax('{{=URL('default', 'search_string')}}',[], 'search_box')
+    });
+    </script>
