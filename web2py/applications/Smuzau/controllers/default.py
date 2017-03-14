@@ -26,7 +26,7 @@ def filter_smuz():
     for smuz in smuzs:
         # TODO: Multiple recipe per smoothie
         recipe = db(db.t_recipe.id == smuz.id).select().first()
-        (DIV(
+        result += (DIV(
             DIV(
                 IMG(_src=URL('default', 'download', args=smuz.f_image), _class="img-responsive"), _class="thumbnail"),
             DIV(
@@ -45,15 +45,8 @@ def filter_smuz():
                         ' </main>')
                     , _class="ratings"),
                 _class="caption"), _class="col-sm-4 col-lg-4 col-md-4").xml())
-        result.append(SCRIPT(XML("(function() { "
-                                 "'use strict'; "
-                                 " // ADD RATING WIDGET "
-                                 "var ratingElement = document.querySelector('.c-rating');"
-                                 "var currentRating = " + str(smuz.f_rating) + ";"
-                                 "var maxRating = 5;"
-                                 "var callback = function(rating) { alert(rating); };"
-                                 "var r = rating(ratingElement, currentRating, maxRating, callback);"
-                                 "})();")))
+        result += SCRIPT('ratingWidget(' + str(smuz.f_rating) + ')', _type='text/javascript')
+
     return result
 
 

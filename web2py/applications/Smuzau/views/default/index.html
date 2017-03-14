@@ -45,5 +45,19 @@
 });
 </script>
 
+        <script>
+
+  function ratingWidget(currRating) {
+    'use strict';
+    // ADD RATING WIDGET
+      var ratingElement = document.querySelector('.c-rating');
+      var currentRating = currRating;
+      var maxRating = 5;
+      var callback = function(rating) { alert(rating); };
+      var r = rating(ratingElement, currentRating, maxRating, callback);
+
+  }
+</script>
+
 
 
