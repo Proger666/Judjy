@@ -43,12 +43,11 @@
     if ($(this).hasClass("selected")) {
         $(this).removeClass('selected').addClass('unselected');
         removeParam("ingr", this.id)
-        ajax('{{=URL('default', 'filter_smuz')}}'+ '{{=request.vars.ingr}}',[], ':eval');
+        ajax('{{=URL('default', 'filter_smuz')}}'+ '?' + window.location.href.split("?")[1],[], 'content');
     } else {
         $(this).removeClass('unselected').addClass('selected');
         addQSParam('ingr', this.id)
         ajax('{{=URL('default', 'filter_smuz')}}'+ '?' + window.location.href.split("?")[1],[], ':eval');
-
     }
 });
        function removeParam(name, value) {
