@@ -16,19 +16,44 @@ def call(): return service()
 def filter_smuz():
     if request.vars.ingr is None:
         smuzs = db(db.t_smoothie).select()
-    else :
-    #   Create list from variables splited by separator
+    else:
+        #   Create list from variables splited by separator
         ids = request.vars.ingr.split("%s")
-    # find anything with tags (from var list)
+        # find anything with tags (from var list)
         smuzs = db(db.t_smoothie.id.belongs(ids)).select()
     # create recipe snippets as pure HTML
     result = []
     for smuz in smuzs:
         # TODO: Multiple recipe per smoothie
         recipe = db(db.t_recipe.id == smuz.id).select().first()
-        result.append(DIV(DIV(IMG(_src=URL('default', 'download', args=smuz.f_image), _class="img-responsive"), _class="thumbnail"),
-            DIV(H4(smuz.f_name), P(recipe.f_fulltext), DIV(P("reviews", _class="pull-right"), _class="ratings"),
+        (DIV(
+            DIV(
+                IMG(_src=URL('default', 'download', args=smuz.f_image), _class="img-responsive"), _class="thumbnail"),
+            DIV(
+                A(
+                    H4(smuz.f_name, _style="text-align:center"),
+                    _href=URL('default', 'smuzau', vars=dict(smooth_name=smuz.f_name_lat))),
+                P(recipe.f_fulltext),
+                DIV(P("reviews", _class="pull-right"),
+                    XML('<main class="o-content"> '
+                        '<div class="o-container"> '
+                        '<div class="o-section"> '
+                        ' <ul class="c-rating">'
+
+                        ' </div>'
+                        ' </div>'
+                        ' </main>')
+                    , _class="ratings"),
                 _class="caption"), _class="col-sm-4 col-lg-4 col-md-4").xml())
+        result.append(SCRIPT(XML("(function() { "
+                                 "'use strict'; "
+                                 " // ADD RATING WIDGET "
+                                 "var ratingElement = document.querySelector('.c-rating');"
+                                 "var currentRating = " + str(smuz.f_rating) + ";"
+                                 "var maxRating = 5;"
+                                 "var callback = function(rating) { alert(rating); };"
+                                 "var r = rating(ratingElement, currentRating, maxRating, callback);"
+                                 "})();")))
     return result
 
 

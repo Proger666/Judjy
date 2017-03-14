@@ -1,4 +1,7 @@
 {{extend 'layout.html'}}
+
+    <script src="{{=URL('static','js/rating.min.js')}}"></script>
+
 <style>
     .selected {
     border: 2px solid #0F0;
@@ -27,11 +30,12 @@
                 </div>
               </div>
             </div>
+
         <script>
         $('.fruits-main').click(function() {
     if ($(this).hasClass("selected")) {
         $(this).removeClass('selected').addClass('unselected');
-        removeParam("ingr", this.id)
+        removeParam("ingr", this.id);
         ajax('{{=URL('default', 'filter_smuz')}}'+ '?' + window.location.href.split("?")[1],[], 'content');
     } else {
         $(this).removeClass('unselected').addClass('selected');
@@ -40,4 +44,6 @@
     }
 });
 </script>
+
+
 

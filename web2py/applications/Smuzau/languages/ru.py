@@ -256,6 +256,7 @@
 'You can modify this application and adapt it to your needs': 'You can modify this application and adapt it to your needs',
 'You visited the url %s': 'You visited the url %s',
 'Рейтинг': 'Рейтинг',
+'Розовый Фламинго Йогуртовый смузи': 'Розовый Фламинго Йогуртовый смузи',
 'Смузи _имя': 'Смузи _имя',
 'Состав:': 'Состав:',
 'Фрукты и Йогурт смузи': 'Фрукты и Йогурт смузи',
