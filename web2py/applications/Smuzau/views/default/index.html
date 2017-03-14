@@ -29,7 +29,7 @@
                     <div class="thumbnail">
                         <p>{{=smuz.f_image}}</p>
                     </div>
-                        <div class="smuz-recipe">
+                        <div class="smuz-recipe" id="content">
                             <p>{{=smuz.f_name}}</p>
                             </div>
                     {{pass}}
@@ -37,37 +37,62 @@
                 </div>
             </div>
             </div>
+
         <script>
-        $('img').click(function() {
+        $('.fruits-main').click(function() {
     if ($(this).hasClass("selected")) {
         $(this).removeClass('selected').addClass('unselected');
+        removeParam("ingr", this.id)
+        ajax('{{=URL('default', 'filter_smuz')}}'+ '{{=request.vars.ingr}}',[], ':eval');
     } else {
         $(this).removeClass('unselected').addClass('selected');
-        ajax('{{=URL('default', 'filter_smuz')}}' + '?ingr=' + '{{if request.vars.ingr is not None: request.vars.ingr + '%' }}'+ this.id,[], ':eval');
+        addQSParam('ingr', this.id)
+        ajax('{{=URL('default', 'filter_smuz')}}'+ '?' + window.location.href.split("?")[1],[], ':eval');
 
-        addQSParm('ingr', 'lal')
     }
 });
-    function addQSParm(name, value) {
-        var re = new RegExp("([?&]" + name + "=)[^&]+", "");
-        var myUrl = window.location.href
+       function removeParam(name, value) {
+        var rtn = window.location.href.split("?")[0],
+                sourceURL = window.location.href,
+        param,
+        params_arr = [],
+        queryString = (sourceURL.indexOf("?") !== -1) ? sourceURL.split("?")[1] : "";
+    if (queryString !== "") {
+        params_arr = queryString.split("&");
+        for (var i = params_arr.length - 1; i >= 0; i -= 1) {
+            param = params_arr[i].split("&")[0];
+            if (param.indexOf(name) !== -1) {
+                if (params_arr[i].indexOf("%s") !== -1) {
+                    params_arr[i] = param.replace("%s" + value , "");
+                }
+                else {
+                    params_arr[i] = param.replace(name + "=" + value, "");
 
-        function add(sep) {
-            myUrl += sep + name + "=" + encodeURIComponent(value);
-        }
-
-        function change() {
-            myUrl = myUrl.replace(re, "$1" + encodeURIComponent(value));
-        }
-        if (myUrl.indexOf("?") === -1) {
-            add("?");
-        } else {
-            if (re.test(myUrl)) {
-                change();
-            } else {
-                add("&");
+                }
             }
         }
+        if (params_arr[0] !== "") {
+            rtn = rtn + "?" + params_arr.join("&");
+        }
+
+    }
+    window.history.pushState(null,"", rtn);
+}
+
+    function addQSParam(name, value) {
+    var url=window.location.href,
+    separator = (url.indexOf("?")===-1)?"?":"%s";
+        if (!(url.indexOf(name) ==-1)) {
+           newParam=separator + value;
+           newUrl=url.replace(newParam,"");
+           newUrl+=newParam;
+        }
+        else {
+        newParam=separator + name + '=' + value;
+    newUrl=url.replace(newParam,"");
+    newUrl+=newParam;
+        }
+    window.history.pushState(null,"", newUrl);
     }
 </script>
 

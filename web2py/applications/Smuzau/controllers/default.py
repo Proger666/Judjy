@@ -14,9 +14,8 @@ def call(): return service()
 
 
 def filter_smuz():
-    ids = request.vars.ingr_id
-    ids = isinstance(ids, basestring) and [ids] or ids  # so it  will be a list in anyway
-    ids = [long(id) for id in ids]  # just in case
+    ids = request.vars.ingr.split("%s")
+
     smuzs = db(db.t_smoothie.id.belongs(ids)).select()
 
     if request.vars.ingr_id is None:
