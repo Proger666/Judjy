@@ -23,8 +23,9 @@ def filter_smuz():
     else:
         smuzs = db(db.t_smoothie.id == request.vars.ingr_id).select()
 
+    abc = DIV(DIV(IMG(_src=URL('default', ''), _class="img-responsive"), _class="thumbnail"),
+    DIV(H4("Smoozie name"), P("bla bla"), DIV(P("blah eviews", _class="pull-right"),_class="ratings"), _class = "caption"), _class = "col-sm-4 col-lg-4 col-md-4")
     return locals()
-
 ### end requires
 def index():
     ingredients = db(db.t_ingredient).select()

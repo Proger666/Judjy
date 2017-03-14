@@ -17,27 +17,17 @@
         <div class="container">
             <div class="row">
                 {{for ingr in ingredients:}}
-                <div class="col-md-2">
+                <div class="col-md-2 col-lg-2 col-sm-2">
                 <img src="{{=URL('default', 'download', args=ingr.f_image)}}" id='{{=ingr.id}}' class="img-responsive img-rounded fruits-main checked">
-                    <p>{{=ingr.id}}</p>
                 </div>
             {{pass}}
             </div>
               <div class="row">
-                <div class="col-md-4">
-                    {{for smuz in smuzs:}}
-                    <div class="thumbnail">
-                        <p>{{=smuz.f_image}}</p>
-                    </div>
-                        <div class="smuz-recipe" id="content">
-                            <p>{{=smuz.f_name}}</p>
-                            </div>
-                    {{pass}}
+                   <div class="smuz-recipe" id="content">
 
                 </div>
+              </div>
             </div>
-            </div>
-
         <script>
         $('.fruits-main').click(function() {
     if ($(this).hasClass("selected")) {
@@ -46,52 +36,9 @@
         ajax('{{=URL('default', 'filter_smuz')}}'+ '?' + window.location.href.split("?")[1],[], 'content');
     } else {
         $(this).removeClass('unselected').addClass('selected');
-        addQSParam('ingr', this.id)
-        ajax('{{=URL('default', 'filter_smuz')}}'+ '?' + window.location.href.split("?")[1],[], ':eval');
+        addQSParam("ingr", this.id);
+        ajax('{{=URL('default', 'filter_smuz')}}'+ '?' + window.location.href.split("?")[1],[], 'content');
     }
 });
-       function removeParam(name, value) {
-        var rtn = window.location.href.split("?")[0],
-                sourceURL = window.location.href,
-        param,
-        params_arr = [],
-        queryString = (sourceURL.indexOf("?") !== -1) ? sourceURL.split("?")[1] : "";
-    if (queryString !== "") {
-        params_arr = queryString.split("&");
-        for (var i = params_arr.length - 1; i >= 0; i -= 1) {
-            param = params_arr[i].split("&")[0];
-            if (param.indexOf(name) !== -1) {
-                if (params_arr[i].indexOf("%s") !== -1) {
-                    params_arr[i] = param.replace("%s" + value , "");
-                }
-                else {
-                    params_arr[i] = param.replace(name + "=" + value, "");
-
-                }
-            }
-        }
-        if (params_arr[0] !== "") {
-            rtn = rtn + "?" + params_arr.join("&");
-        }
-
-    }
-    window.history.pushState(null,"", rtn);
-}
-
-    function addQSParam(name, value) {
-    var url=window.location.href,
-    separator = (url.indexOf("?")===-1)?"?":"%s";
-        if (!(url.indexOf(name) ==-1)) {
-           newParam=separator + value;
-           newUrl=url.replace(newParam,"");
-           newUrl+=newParam;
-        }
-        else {
-        newParam=separator + name + '=' + value;
-    newUrl=url.replace(newParam,"");
-    newUrl+=newParam;
-        }
-    window.history.pushState(null,"", newUrl);
-    }
 </script>
 
