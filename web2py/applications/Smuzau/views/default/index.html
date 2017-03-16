@@ -19,12 +19,16 @@
         </div>
         <div class="container">
             <div class="row">
+                <h2 align="center"> С чем замутим смузяшку ? </h2>
+            </div>
+            <div class="row">
                 {{for ingr in ingredients:}}
                 <div class="col-md-2 col-lg-2 col-sm-2">
                 <img src="{{=URL('default', 'download', args=ingr.f_image)}}" id='{{=ingr.id}}' class="img-responsive img-rounded fruits-main checked">
                 </div>
             {{pass}}
             </div>
+
               <div class="row">
                    <div class="smuz-recipe" id="content">
                 </div>
@@ -45,19 +49,6 @@
 });
 </script>
 
-        <script>
-
-  function ratingWidget(currRating) {
-    'use strict';
-    // ADD RATING WIDGET
-      var ratingElement = document.querySelector('.c-rating');
-      var currentRating = currRating;
-      var maxRating = 5;
-      var callback = function(rating) { alert(rating); };
-      var r = rating(ratingElement, currentRating, maxRating, callback);
-
-  }
-</script>
 
 
 

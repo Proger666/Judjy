@@ -14,6 +14,8 @@ def call(): return service()
 
 
 def filter_smuz():
+
+    # if nothing chosen select all
     if request.vars.ingr is None:
         smuzs = db(db.t_smoothie).select()
     else:
@@ -21,12 +23,20 @@ def filter_smuz():
         ids = request.vars.ingr.split("%s")
         # find anything with tags (from var list)
         smuzs = db(db.t_smoothie.id.belongs(ids)).select()
-    # create recipe snippets as pure HTML
+    # create recipe snippets as pure HTML (XML)
     result = []
     for smuz in smuzs:
         # TODO: Multiple recipe per smoothie
         recipe = db(db.t_recipe.id == smuz.id).select().first()
-        result += (DIV(
+        i = 0
+        rating_XML = ""
+        while i < settings.max_rating:
+            if i < smuz.f_rating:
+                rating_XML += XML('<li class="c-rating__item is-active" data-index="'+ str(i) + '" ></li>')
+            else:
+                rating_XML += XML('<li class="c-rating__item" data-index="'+ str(i) + '" ></li>')
+            i += 1
+        result.append ((DIV(
             DIV(
                 IMG(_src=URL('default', 'download', args=smuz.f_image), _class="img-responsive"), _class="thumbnail"),
             DIV(
@@ -34,18 +44,18 @@ def filter_smuz():
                     H4(smuz.f_name, _style="text-align:center"),
                     _href=URL('default', 'smuzau', vars=dict(smooth_name=smuz.f_name_lat))),
                 P(recipe.f_fulltext),
-                DIV(P("reviews", _class="pull-right"),
+                DIV(P("Оценили", _class="pull-right"),
                     XML('<main class="o-content"> '
                         '<div class="o-container"> '
                         '<div class="o-section"> '
-                        ' <ul class="c-rating">'
-
+                        '<ul class="c-rating"> '
+                         + rating_XML +
+                        '<li class="grid_col_review"> ' + str(smuz.f_rated_count) + '</li>'
                         ' </div>'
                         ' </div>'
-                        ' </main>')
-                    , _class="ratings"),
-                _class="caption"), _class="col-sm-4 col-lg-4 col-md-4").xml())
-        result += SCRIPT('ratingWidget(' + str(smuz.f_rating) + ')', _type='text/javascript')
+                        ' </main>'
+                        ),_class="ratings"),
+                _class="caption"), _class="col-sm-4 col-lg-4 col-md-4").xml()))
 
     return result
 

@@ -12,6 +12,14 @@
     margin-top: 1px;
 }
 
+.grid_col_review {
+    color: #6d6d6d;
+    position: relative;
+    top: 3px;
+    margin-left: .25rem;
+    font-size: 13px!important;
+}
+
 .fruits-main{
     width: auto;
     height: 100px;
