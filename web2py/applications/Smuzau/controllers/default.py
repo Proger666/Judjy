@@ -44,13 +44,13 @@ def filter_smuz():
                     H4(smuz.f_name, _style="text-align:center"),
                     _href=URL('default', 'smuzau', vars=dict(smooth_name=smuz.f_name_lat))),
                 P(recipe.f_fulltext),
-                DIV(P("Оценили", _class="pull-right"),
+                DIV(P("Оценили", _class="pull-right grid-col-reviewed"),
                     XML('<main class="o-content"> '
                         '<div class="o-container"> '
                         '<div class="o-section"> '
                         '<ul class="c-rating"> '
                          + rating_XML +
-                        '<li class="grid_col_review"> ' + str(smuz.f_rated_count) + '</li>'
+                        '<li class="grid_col_review_count"> ' + str(smuz.f_rated_count) + '</li>'
                         ' </div>'
                         ' </div>'
                         ' </main>'

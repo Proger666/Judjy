@@ -12,10 +12,15 @@
     margin-top: 1px;
 }
 
-.grid_col_review {
+.grid-col-reviewed{
+    padding: 2px;
+
+}
+
+.grid_col_review_count {
     color: #6d6d6d;
     position: relative;
-    top: 3px;
+    top: 4px;
     margin-left: .25rem;
     font-size: 13px!important;
 }
