@@ -88,10 +88,13 @@ def smuzau():
 def smuz_voting():
 
     smuz_to_update = db.t_smoothie[int(request.vars.id)]
-    cur_rating = db.t_smoothie[int(request.vars.id)].f_rating
-    cur_rateNum = db.t_smoothie[int(request.vars.id)].f_rated_count
-    new_rating = round((cur_rating * cur_rateNum + float(request.vars.rating)) / (cur_rateNum + 1))
-    smuz_to_update.update_record(f_rating=new_rating)
+
+    # FIXME: static assign to DB make "like "*rated*"
+    rate_list = db(db.t_rating.id == db.t_smoothie.f_rating).select()[0].t_rating
+    for x in rate_list:
+        if x.index("rated")
+    new_rating = 5s * 5s_c + 4s * 4s_c + 3s * 3s_c + 2s * 2s_c + 5s * 5s_c + 5s * 5s_c
+   # smuz_to_update.update_record(f_rating=new_rating)
     smuz_to_update.update_record(f_rated_count = cur_rateNum + 1)
 
     return locals()
