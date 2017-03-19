@@ -81,9 +81,20 @@ def smuzau():
     if not request.vars.smooth_name:
         return ''
     smothie = db(db.t_smoothie.f_name_lat == request.vars.smooth_name).select().first()
+    recipe = db(db.t_recipe.id == smothie.id).select().first()
     rating = smothie.f_rating
     return locals()
 
+def smuz_voting():
+
+    smuz_to_update = db.t_smoothie[int(request.vars.id)]
+    cur_rating = db.t_smoothie[int(request.vars.id)].f_rating
+    cur_rateNum = db.t_smoothie[int(request.vars.id)].f_rated_count
+    new_rating = round((cur_rating * cur_rateNum + float(request.vars.rating)) / (cur_rateNum + 1))
+    smuz_to_update.update_record(f_rating=new_rating)
+    smuz_to_update.update_record(f_rated_count = cur_rateNum + 1)
+
+    return locals()
 
 def search_string():
     return FORM(DIV(INPUT(_name='search_', _title='Все смузяу тут',

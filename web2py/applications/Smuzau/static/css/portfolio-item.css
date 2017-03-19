@@ -17,6 +17,49 @@
 
 }
 
+.recipe-summary__rating {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    -moz-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    -webkit-justify-content: center;
+    justify-content: flex-start;
+    margin-bottom: .75rem;
+}
+
+.user_space_smuz_view {
+    margin: 0 .5rem .5rem .5rem;
+    min-width: 270px;
+}
+
+.user_name_smuz_view {
+    display: inline-block;
+    margin-right: .5rem;
+    width: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 64%;
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.recipe_by__line {
+    float: left;
+    margin-right: .25rem;
+    margin-left: .25rem;
+    display: inline-block;
+    color: #808080;
+    font-size: 15px;
+}
+
 .grid_col_review_count {
     color: #6d6d6d;
     position: relative;
@@ -60,6 +103,9 @@ footer {
     margin: 0 auto;
 }
 
+.o-content {
+    transform: scale(1.25);
+}
 .half-star {
     display: inline-block;
     float: left;

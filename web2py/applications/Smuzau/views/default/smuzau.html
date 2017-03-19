@@ -20,7 +20,7 @@
             </div>
 
             <div class="col-md-4">
-                <h3>{{=T('Рейтинг')}}</h3>
+            <div class="recipe-summary__rating">
                 <main class="o-content">
                   <div class="o-container">
                     <div class="o-section">
@@ -28,14 +28,14 @@
                     </div>
                   </div>
                 </main>
-
-                <h3>{{=T('Теги:')}}</h3>
-                <ul>
-                    <li>Lorem Ipsum</li>
-                    <li>Dolor Sit Amet</li>
-                    <li>Consectetur</li>
-                    <li>Adipiscing Elit</li>
-                </ul>
+            </div>
+                <div class="user_space_smuz_view">
+                <span class="recipe_by__line">{{=T('Рецепт от:')}}</span>
+               <span class="user_name_smuz_view"> {{=recipe.created_by.first_name}}</span>
+                <p class="recipe_by__line">
+                   {{=recipe.f_fulltext}}
+                </p>
+                </div>
             </div>
 
         </div>
@@ -45,7 +45,7 @@
         <div class="row">
 
             <div class="col-lg-12">
-                <h3 class="page-header">{{=T('Состав')}}</h3>
+                <h3 class="page-header">{{=T('Из чего')}}</h3>
             </div>
 
             <div class="col-sm-3 col-xs-6">
@@ -86,7 +86,15 @@
       var ratingElement = document.querySelector('.c-rating');
       var currentRating = '{{=rating}}';
       var maxRating = 5;
-      var callback = function(rating) { alert(rating); };
+      var callback = function(rating) {
+          $.ajax({
+              url: '{{=URL('default', 'smuz_voting')}}',
+              data: {
+                  rating: rating,
+                  id: '{{=smothie.id}}'
+              }
+        })
+      };
       var r = rating(ratingElement, currentRating, maxRating, callback);
 
   })();

@@ -258,9 +258,12 @@
 'You are successfully running web2py': 'You are successfully running web2py',
 'You can modify this application and adapt it to your needs': 'You can modify this application and adapt it to your needs',
 'You visited the url %s': 'You visited the url %s',
+'Из чего': 'Из чего',
 'Рейтинг': 'Рейтинг',
+'Рецепт от:': 'Рецепт от:',
 'Розовый Фламинго Йогуртовый смузи': 'Розовый Фламинго Йогуртовый смузи',
 'Смузи _имя': 'Смузи _имя',
+'Состав': 'Состав',
 'Состав:': 'Состав:',
 'Фрукты и Йогурт смузи': 'Фрукты и Йогурт смузи',
 }
