@@ -87,15 +87,32 @@ def smuzau():
 
 def smuz_voting():
 
-    smuz_to_update = db.t_smoothie[int(request.vars.id)]
+    # get rating Record for asked soothie
+    rating_to_update = db(db.t_rating.f_smoothie == request.vars.id).select().first()
+    # construct needed field from db
+    star_count = 'f_rated_' + request.vars.rating + '_count'
+    R = rating_to_update[star_count] + 1
+    # increase counter by 1
+    rating_to_update[star_count] = R
+    # flush to db
+    rating_to_update.update_record()
 
-    # FIXME: static assign to DB make "like "*rated*"
-    rate_list = db(db.t_rating.id == db.t_smoothie.f_rating).select()[0].t_rating
-    for x in rate_list:
-        if x.index("rated")
-    new_rating = 5s * 5s_c + 4s * 4s_c + 3s * 3s_c + 2s * 2s_c + 5s * 5s_c + 5s * 5s_c
-   # smuz_to_update.update_record(f_rating=new_rating)
-    smuz_to_update.update_record(f_rated_count = cur_rateNum + 1)
+    # FIXME: god dat is ugly. FIX ME FOR GOD SAKE!!
+    # Calculate MEAN rating
+    votes_count = (rating_to_update.f_rated_5_count + rating_to_update.f_rated_4_count +
+                 rating_to_update.f_rated_3_count + rating_to_update.f_rated_2_count + rating_to_update.f_rated_1_count)
+
+    new_rating = (rating_to_update.f_rated_5_count * 5 +
+                 rating_to_update.f_rated_4_count * 4 +
+                 rating_to_update.f_rated_3_count * 3 +
+                 rating_to_update.f_rated_2_count * 2 +
+                 rating_to_update.f_rated_1_count * 1) / votes_count
+
+
+    # flush to db new MEAN rating
+    rating_to_update.update_record(f_rating=new_rating)
+    db(db.t_smoothie.id == request.vars.id).update(f_rating=new_rating,f_rated_count=votes_count)
+    #smuz_to_update.update_record(f_rated_count = cur_rateNum + 1)
 
     return locals()
 
