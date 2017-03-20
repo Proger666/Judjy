@@ -106,6 +106,7 @@ db.define_table('t_recipe',
                       label=T('Date')),
                 Field('f_fulltext', type='string',
                       label=T('Fulltext')),
+                Field('ingredients', 'list:reference tag_ingr'),
                 Field('f_smoothie', db.t_smoothie,
                       label=T('Smoothie')),
                 auth.signature,
@@ -114,3 +115,10 @@ db.define_table('t_recipe',
 
 db.define_table('t_recipe_archive', db.t_recipe,
                 Field('current_record', 'reference t_recipe', readable=False, writable=False))
+########################################
+db.define_table('t_recipe_ingr',
+                Field('f_recipe', db.t_recipe),
+                Field('f_ingr', db.t_ingredient),
+                Field('f_quantity'), type='string',
+                label=T('quantity'),
+                migrate=settings.migrate)
