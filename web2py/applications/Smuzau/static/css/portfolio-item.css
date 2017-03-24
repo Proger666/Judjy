@@ -106,6 +106,91 @@ footer {
 .o-content__smuz_view {
     transform: scale(1.25);
 }
+
+.icon--picture.gray {
+    background-image: url(/Smuzau/static/images/photo-gray.svg);
+    background-repeat: no-repeat;
+}
+
+@media (min-width: 1024px) {
+    .create-recipe .icon--picture.gray {
+        width: 276px;
+        height: 185px;
+        background-position: center 35px;
+        background-size: 36%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .create-recipe .icon--picture.gray {
+        width: 276px;
+        height: 185px;
+        background-position: center 35px;
+        background-size: 36%;
+    }
+}
+
+.create-recipe .icon--picture.gray {
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 140px;
+    height: 110px;
+    display: block;
+    background-size: 40%;
+    transform: scale(1);
+    background-position: center 30px;
+    opacity: .7;
+}
+
+@media (min-width: 1024px) {
+    .create-recipe .add-photo {
+        width: 276px;
+        height: 185px;
+        margin-left: 0;
+    }
+}
+@media (min-width: 768px) {
+    .create-recipe .add-photo {
+        margin-left: 24%;
+        margin-right: 24%;
+    }
+}
+@media (min-width: 568px) {
+    .create-recipe .add-photo {
+        margin-left: 37.5%;
+        margin-right: 37.5%;
+    }
+}
+.create-recipe .add-photo {
+    float: left;
+    width: 140px;
+    height: 110px;
+    text-align: center;
+    border: 1px dashed #e6e6e6;
+    margin: 0 25% 1rem;
+    display: block;
+}
+.create-recipe .add-photo_smuz {
+    float: left;
+    width: 140px;
+    height: 110px;
+    text-align: center;
+    border: 1px dashed #e6e6e6;
+    margin: 0 25% 1rem;
+    display: block
+}
+
+.add-photo_smuz {
+    float: left;
+    width: 140px;
+    height: 110px;
+    text-align: center;
+    border: 1px dashed #e6e6e6;
+    margin: 0 25% 1rem;
+    display: block;
+}
+
 .half-star {
     display: inline-block;
     float: left;

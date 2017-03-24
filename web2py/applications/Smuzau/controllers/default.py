@@ -60,7 +60,7 @@ def filter_smuz():
     return result
 
 def add_smuz():
-    form = SQLFORM(db.t_smoothie)
+
     return locals()
 
 ### end requires
