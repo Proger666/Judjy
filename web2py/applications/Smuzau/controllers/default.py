@@ -13,6 +13,9 @@ def download(): return response.download(request, db)
 def call(): return service()
 
 def search_or(tags=[]):
+
+    #Search through each tags inside many-to-many relation
+    # with OR
  t_smoothie = db.t_smoothie
  ingr = db.t_ingredient
  ingr_smuz = db.ingr_smuz
@@ -27,6 +30,8 @@ def search_or(tags=[]):
 
 
 def search_and(tags=[]):
+    # Search through each tags inside many-to-many relation
+    # with AND
     t_smoothie = db.t_smoothie
     ingr = db.t_ingredient
     ingr_smuz = db.ingr_smuz
@@ -49,11 +54,14 @@ def filter_smuz():
     else:
         #   Create list from variables splited by separator
         ids = request.vars.ingr.split("%s")
-        smuzs = search_or(ids)
+        smuzs = search_and(ids)
         # find anything with tags (from var list)
 
     # create recipe snippets as pure HTML (XML)
     result = []
+    if len(smuzs) == 0:
+        return DIV(P('Пустота вокруг...'), _class="text_size_24 page-header center").xml()
+
     for smuz in smuzs:
         # TODO: Multiple recipe per smoothie
         recipe = db(db.t_recipe.f_smoothie == smuz.id).select().first()
@@ -124,15 +132,25 @@ def smuzau():
         return ''
     smothie = db(db.t_smoothie.f_name_lat == request.vars.smooth_name).select().first()
     #ingrs = smothie.ingredients
-    ingrs = []
+    # TODO: Lazy magic - learn
+    ingrs = smothie.ingr_smuz.select(db.ingr_smuz.ingr)
     recipe = db(db.t_recipe.f_smoothie == smothie.id).select().first()
     rating = smothie.f_rating
     return locals()
 
 
+def create_default_rating_row(id):
+    db.t_rating.insert(f_smoothie=id)
+    db.commit()
+    pass
+
+
 def smuz_voting():
     # get rating Record for asked soothie
     rating_to_update = db(db.t_rating.f_smoothie == request.vars.id).select().first()
+    if rating_to_update is None:
+        create_default_rating_row(request.vars.id)
+        rating_to_update = db(db.t_rating.f_smoothie == request.vars.id).select().first()
     # construct needed field from db
     star_count = 'f_rated_' + request.vars.rating + '_count'
     R = rating_to_update[star_count] + 1

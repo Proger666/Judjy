@@ -16,7 +16,19 @@
     padding: 2px;
 
 }
+.srch-empty_text {
+    margin-bottom: 28px;
+    padding: 28px;
+    text-align: center;
+}
 
+.text_size_32 {
+    font-size: 32px;
+}
+
+.text_size_24 {
+    font-size: 24px;
+}
 .recipe-summary__rating {
     display: -webkit-box;
     display: -moz-box;
