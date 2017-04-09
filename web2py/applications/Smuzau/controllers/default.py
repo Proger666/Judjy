@@ -22,12 +22,15 @@ def filter_smuz():
         #   Create list from variables splited by separator
         ids = request.vars.ingr.split("%s")
         # find anything with tags (from var list)
-        smuzs = db(db.t_smoothie.id.belongs(ids)).select()
+        s = db(db.t_ingredient.id.belongs(ids)).select(db.t_ingredient.tag_id)
+
+    ingr = [x.tag_id for x in db(db.t_ingredient.id.belongs(ids)).select(db.t_ingredient.tag_id)]
+    smuz = db(db.t_smoothie.ingredient == ingr).select()
     # create recipe snippets as pure HTML (XML)
     result = []
     for smuz in smuzs:
         # TODO: Multiple recipe per smoothie
-        recipe = db(db.t_recipe.id == smuz.id).select().first()
+        recipe = db(db.t_recipe.f_smoothie == smuz.id).select().first()
         i = 0
         rating_XML = ""
         while i < settings.max_rating:
@@ -61,6 +64,15 @@ def filter_smuz():
 
 def add_smuz():
 
+    form = SQLFORM.factory(db.t_smoothie)
+    if form.process(session=None, formname='test').accepted:
+        response.flash = 'form accepted'
+    elif form.errors:
+        response.flash = 'form has errors'
+    else:
+        response.flash = 'please fill the form'
+    if form.accepts(request,session):
+        redirect(URL('index'))
     return locals()
 
 ### end requires
@@ -84,7 +96,8 @@ def smuzau():
     if not request.vars.smooth_name:
         return ''
     smothie = db(db.t_smoothie.f_name_lat == request.vars.smooth_name).select().first()
-    recipe = db(db.t_recipe.id == smothie.id).select().first()
+    ingrs = smothie.ingredients
+    recipe = db(db.t_recipe.f_smoothie == smothie.id).select().first()
     rating = smothie.f_rating
     return locals()
 
