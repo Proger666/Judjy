@@ -12,6 +12,20 @@ def download(): return response.download(request, db)
 
 def call(): return service()
 
+def search_or(tags=[]):
+ t_smoothie = db.t_smoothie
+ ingr = db.t_ingredient
+ ingr_smuz = db.ingr_smuz
+ subquery = db(db.t_ingredient.id.belongs(tags)).select(db.t_ingredient.id)
+ rows = db(t_smoothie.id==ingr_smuz.smuz)\
+ (ingr_smuz.ingr.belongs(subquery)).select(
+     t_smoothie.ALL,
+     orderby=t_smoothie.id,
+     groupby=t_smoothie.id,
+     distinct=True)
+ return rows
+
+
 def search_and(tags=[]):
     t_smoothie = db.t_smoothie
     ingr = db.t_ingredient
@@ -19,22 +33,23 @@ def search_and(tags=[]):
     n = len(tags)
     subquery = db(ingr.id.belongs(tags)).select(ingr.id)
     rows = db(t_smoothie.id == ingr_smuz.smuz) \
-            (ingr_smuz.ingr.belongs(subquery)).select(
-                t_smoothie.ALL,
-                orderby=t_smoothie.id,
-                groupby=t_smoothie.id,
-                having=t_smoothie.id.count() == n)
+        (ingr_smuz.ingr.belongs(subquery)).select(
+        t_smoothie.ALL,
+        orderby=t_smoothie.id,
+        groupby=t_smoothie.id,
+        having=t_smoothie.id.count() == n)
+    if len(rows) == 0:
+        rows = search_or(tags)
     return rows
 
 def filter_smuz():
-
     # if nothing chosen select all
     if request.vars.ingr is None:
         smuzs = db(db.t_smoothie).select()
     else:
         #   Create list from variables splited by separator
         ids = request.vars.ingr.split("%s")
-        smuzs = search_and(ids)
+        smuzs = search_or(ids)
         # find anything with tags (from var list)
 
     # create recipe snippets as pure HTML (XML)
@@ -46,11 +61,11 @@ def filter_smuz():
         rating_XML = ""
         while i < settings.max_rating:
             if i < smuz.f_rating:
-                rating_XML += XML('<li class="c-rating__item is-active" data-index="'+ str(i) + '" ></li>')
+                rating_XML += XML('<li class="c-rating__item is-active" data-index="' + str(i) + '" ></li>')
             else:
-                rating_XML += XML('<li class="c-rating__item" data-index="'+ str(i) + '" ></li>')
+                rating_XML += XML('<li class="c-rating__item" data-index="' + str(i) + '" ></li>')
             i += 1
-        result.append ((DIV(
+        result.append((DIV(
             DIV(
                 IMG(_src=URL('default', 'download', args=smuz.f_image), _class="img-responsive"), _class="thumbnail"),
             DIV(
@@ -63,18 +78,18 @@ def filter_smuz():
                         '<div class="o-container"> '
                         '<div class="o-section"> '
                         '<ul class="c-rating"> '
-                         + rating_XML +
+                        + rating_XML +
                         '<li class="grid_col_review_count"> ' + str(smuz.f_rated_count) + '</li>'
-                        ' </div>'
-                        ' </div>'
-                        ' </main>'
-                        ),_class="ratings"),
+                                                                                          ' </div>'
+                                                                                          ' </div>'
+                                                                                          ' </main>'
+                        ), _class="ratings"),
                 _class="caption"), _class="col-sm-4 col-lg-4 col-md-4").xml()))
 
     return result
 
-def add_smuz():
 
+def add_smuz():
     form = SQLFORM.factory(db.t_smoothie)
     if form.process(session=None, formname='test').accepted:
         response.flash = 'form accepted'
@@ -82,9 +97,10 @@ def add_smuz():
         response.flash = 'form has errors'
     else:
         response.flash = 'please fill the form'
-    if form.accepts(request,session):
+    if form.accepts(request, session):
         redirect(URL('index'))
     return locals()
+
 
 ### end requires
 def index():
@@ -107,13 +123,14 @@ def smuzau():
     if not request.vars.smooth_name:
         return ''
     smothie = db(db.t_smoothie.f_name_lat == request.vars.smooth_name).select().first()
-    ingrs = smothie.ingredients
+    #ingrs = smothie.ingredients
+    ingrs = []
     recipe = db(db.t_recipe.f_smoothie == smothie.id).select().first()
     rating = smothie.f_rating
     return locals()
 
-def smuz_voting():
 
+def smuz_voting():
     # get rating Record for asked soothie
     rating_to_update = db(db.t_rating.f_smoothie == request.vars.id).select().first()
     # construct needed field from db
@@ -127,21 +144,21 @@ def smuz_voting():
     # FIXME: god dat is ugly. FIX ME FOR GOD SAKE!!
     # Calculate MEAN rating
     votes_count = (rating_to_update.f_rated_5_count + rating_to_update.f_rated_4_count +
-                 rating_to_update.f_rated_3_count + rating_to_update.f_rated_2_count + rating_to_update.f_rated_1_count)
+                   rating_to_update.f_rated_3_count + rating_to_update.f_rated_2_count + rating_to_update.f_rated_1_count)
 
     new_rating = (rating_to_update.f_rated_5_count * 5 +
-                 rating_to_update.f_rated_4_count * 4 +
-                 rating_to_update.f_rated_3_count * 3 +
-                 rating_to_update.f_rated_2_count * 2 +
-                 rating_to_update.f_rated_1_count * 1) / votes_count
-
+                  rating_to_update.f_rated_4_count * 4 +
+                  rating_to_update.f_rated_3_count * 3 +
+                  rating_to_update.f_rated_2_count * 2 +
+                  rating_to_update.f_rated_1_count * 1) / votes_count
 
     # flush to db new MEAN rating
     rating_to_update.update_record(f_rating=new_rating)
-    db(db.t_smoothie.id == request.vars.id).update(f_rating=new_rating,f_rated_count=votes_count)
-    #smuz_to_update.update_record(f_rated_count = cur_rateNum + 1)
+    db(db.t_smoothie.id == request.vars.id).update(f_rating=new_rating, f_rated_count=votes_count)
+    # smuz_to_update.update_record(f_rated_count = cur_rateNum + 1)
 
     return locals()
+
 
 def search_string():
     return FORM(DIV(INPUT(_name='search_', _title='Все смузяу тут',
