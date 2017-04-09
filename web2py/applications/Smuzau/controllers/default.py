@@ -22,7 +22,6 @@ def filter_smuz():
         #   Create list from variables splited by separator
         ids = request.vars.ingr.split("%s")
         # find anything with tags (from var list)
-        s = db(db.t_ingredient.id.belongs(ids)).select(db.t_ingredient.tag_id)
 
     ingr = [x.tag_id for x in db(db.t_ingredient.id.belongs(ids)).select(db.t_ingredient.tag_id)]
     smuz = db(db.t_smoothie.ingredient == ingr).select()
