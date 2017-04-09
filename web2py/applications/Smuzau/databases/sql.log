@@ -1,4 +1,4 @@
-timestamp: 2017-04-09T12:45:36.418000
+timestamp: 2017-04-09T18:24:44.068000
 CREATE TABLE auth_user(
     id INT AUTO_INCREMENT NOT NULL,
     first_name VARCHAR(128),
@@ -11,7 +11,7 @@ CREATE TABLE auth_user(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.478000
+timestamp: 2017-04-09T18:24:44.121000
 CREATE TABLE auth_group(
     id INT AUTO_INCREMENT NOT NULL,
     role VARCHAR(512),
@@ -19,7 +19,7 @@ CREATE TABLE auth_group(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.533000
+timestamp: 2017-04-09T18:24:44.178000
 CREATE TABLE auth_membership(
     id INT AUTO_INCREMENT NOT NULL,
     user_id INT  , INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
@@ -27,7 +27,7 @@ CREATE TABLE auth_membership(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.593000
+timestamp: 2017-04-09T18:24:44.227000
 CREATE TABLE auth_permission(
     id INT AUTO_INCREMENT NOT NULL,
     group_id INT  , INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
@@ -37,7 +37,7 @@ CREATE TABLE auth_permission(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.655000
+timestamp: 2017-04-09T18:24:44.280000
 CREATE TABLE auth_event(
     id INT AUTO_INCREMENT NOT NULL,
     time_stamp DATETIME,
@@ -48,7 +48,7 @@ CREATE TABLE auth_event(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.698000
+timestamp: 2017-04-09T18:24:44.348000
 CREATE TABLE auth_cas(
     id INT AUTO_INCREMENT NOT NULL,
     user_id INT  , INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
@@ -59,21 +59,21 @@ CREATE TABLE auth_cas(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.768000
+timestamp: 2017-04-09T18:24:44.406000
 CREATE TABLE t_taste(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.821000
+timestamp: 2017-04-09T18:24:44.462000
 CREATE TABLE tag_smuz(
     id INT AUTO_INCREMENT NOT NULL,
     name VARCHAR(512),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.860000
+timestamp: 2017-04-09T18:24:44.519000
 CREATE TABLE t_review(
     id INT AUTO_INCREMENT NOT NULL,
     f_fulltext VARCHAR(512),
@@ -85,7 +85,7 @@ CREATE TABLE t_review(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.911000
+timestamp: 2017-04-09T18:24:44.574000
 CREATE TABLE t_review_archive(
     id INT AUTO_INCREMENT NOT NULL,
     f_fulltext VARCHAR(512),
@@ -98,14 +98,14 @@ CREATE TABLE t_review_archive(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:36.988000
+timestamp: 2017-04-09T18:24:44.642000
 CREATE TABLE t_category(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.036000
+timestamp: 2017-04-09T18:24:44.691000
 CREATE TABLE t_smoothie(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
@@ -115,11 +115,11 @@ CREATE TABLE t_smoothie(
     f_img LONGBLOB,
     f_rating INT,
     f_rated_count INT,
-    ingredients LONGTEXT,
+    tags LONGTEXT,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.085000
+timestamp: 2017-04-09T18:25:15.514000
 CREATE TABLE t_ingredient(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
@@ -129,15 +129,15 @@ CREATE TABLE t_ingredient(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.130000
-CREATE TABLE tag_ingr(
+timestamp: 2017-04-09T18:25:15.563000
+CREATE TABLE ingr_smuz(
     id INT AUTO_INCREMENT NOT NULL,
-    name VARCHAR(512),
-    ingr_tbl INT  , INDEX ingr_tbl__idx (ingr_tbl), FOREIGN KEY (ingr_tbl) REFERENCES t_ingredient (id) ON DELETE CASCADE,
+    ingr INT  , INDEX ingr__idx (ingr), FOREIGN KEY (ingr) REFERENCES t_ingredient (id) ON DELETE CASCADE,
+    smuz INT  , INDEX smuz__idx (smuz), FOREIGN KEY (smuz) REFERENCES t_smoothie (id) ON DELETE CASCADE,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.175000
+timestamp: 2017-04-09T18:25:15.619000
 CREATE TABLE t_rating(
     id INT AUTO_INCREMENT NOT NULL,
     f_rating INT,
@@ -151,7 +151,7 @@ CREATE TABLE t_rating(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.232000
+timestamp: 2017-04-09T18:25:15.683000
 CREATE TABLE t_smoothie_review(
     id INT AUTO_INCREMENT NOT NULL,
     f_smoothie INT  , INDEX f_smoothie__idx (f_smoothie), FOREIGN KEY (f_smoothie) REFERENCES t_smoothie (id) ON DELETE CASCADE,
@@ -159,7 +159,7 @@ CREATE TABLE t_smoothie_review(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.289000
+timestamp: 2017-04-09T18:25:15.730000
 CREATE TABLE t_smoothie_category(
     id INT AUTO_INCREMENT NOT NULL,
     f_smoothie INT  , INDEX f_smoothie__idx (f_smoothie), FOREIGN KEY (f_smoothie) REFERENCES t_smoothie (id) ON DELETE CASCADE,
@@ -167,7 +167,7 @@ CREATE TABLE t_smoothie_category(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.359000
+timestamp: 2017-04-09T18:25:15.783000
 CREATE TABLE t_ingr_category(
     id INT AUTO_INCREMENT NOT NULL,
     f_ingr INT  , INDEX f_ingr__idx (f_ingr), FOREIGN KEY (f_ingr) REFERENCES t_ingredient (id) ON DELETE CASCADE,
@@ -175,7 +175,7 @@ CREATE TABLE t_ingr_category(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.418000
+timestamp: 2017-04-09T18:25:15.833000
 CREATE TABLE t_recipe(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
@@ -190,7 +190,7 @@ CREATE TABLE t_recipe(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.485000
+timestamp: 2017-04-09T18:25:15.908000
 CREATE TABLE t_recipe_archive(
     id INT AUTO_INCREMENT NOT NULL,
     f_name VARCHAR(512),
@@ -206,7 +206,7 @@ CREATE TABLE t_recipe_archive(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
-timestamp: 2017-04-09T12:45:37.547000
+timestamp: 2017-04-09T18:25:15.974000
 CREATE TABLE t_recipe_ingr(
     id INT AUTO_INCREMENT NOT NULL,
     f_recipe INT  , INDEX f_recipe__idx (f_recipe), FOREIGN KEY (f_recipe) REFERENCES t_recipe (id) ON DELETE CASCADE,
@@ -214,53 +214,4 @@ CREATE TABLE t_recipe_ingr(
     f_quantity VARCHAR(512),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
-success!
-timestamp: 2017-04-09T12:52:19.143000
-ALTER TABLE t_smoothie ADD tags LONGTEXT;
-timestamp: 2017-04-09T12:52:38.636000
-ALTER TABLE t_smoothie ADD smuz_tags LONGTEXT;
-success!
-success!
-timestamp: 2017-04-09T13:08:48.912000
-ALTER TABLE tag_ingr DROP COLUMN ingr_tbl;
-timestamp: 2017-04-09T13:10:22.949000
-ALTER TABLE tag_ingr DROP COLUMN ingr_tbl;
-timestamp: 2017-04-09T13:12:38.837000
-ALTER TABLE tag_ingr DROP COLUMN ingr_tbl;
-timestamp: 2017-04-09T13:13:13.608000
-ALTER TABLE tag_ingr DROP COLUMN ingr_tbl;
-timestamp: 2017-04-09T13:13:38.389000
-ALTER TABLE tag_ingr DROP COLUMN ingr_tbl;
-timestamp: 2017-04-09T13:13:49.841000
-ALTER TABLE tag_ingr DROP COLUMN ingr_tbl;
-faked!
-timestamp: 2017-04-09T13:14:05.457000
-ALTER TABLE tag_ingr ADD name__tmp INT;
-faked!
-UPDATE tag_ingr SET name__tmp=name;
-faked!
-ALTER TABLE tag_ingr DROP COLUMN name;
-faked!
-ALTER TABLE tag_ingr ADD name INT;
-faked!
-UPDATE tag_ingr SET name=name__tmp;
-faked!
-ALTER TABLE tag_ingr DROP COLUMN name__tmp;
-faked!
-timestamp: 2017-04-09T13:15:26.994000
-ALTER TABLE tag_ingr ADD name__tmp VARCHAR(512);
-success!
-UPDATE tag_ingr SET name__tmp=name;
-success!
-ALTER TABLE tag_ingr DROP COLUMN name;
-success!
-ALTER TABLE tag_ingr ADD name VARCHAR(512);
-success!
-UPDATE tag_ingr SET name=name__tmp;
-success!
-ALTER TABLE tag_ingr DROP COLUMN name__tmp;
-success!
-timestamp: 2017-04-09T13:33:49.739000
-ALTER TABLE t_ingredient ADD tag_id INT  , ADD INDEX tag_id__idx (tag_id), ADD FOREIGN KEY (tag_id) REFERENCES tag_ingr (id) ON DELETE CASCADE;
-success!
 success!

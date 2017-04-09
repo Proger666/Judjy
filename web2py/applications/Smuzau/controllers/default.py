@@ -12,6 +12,19 @@ def download(): return response.download(request, db)
 
 def call(): return service()
 
+def search_and(tags=[]):
+    t_smoothie = db.t_smoothie
+    ingr = db.t_ingredient
+    ingr_smuz = db.ingr_smuz
+    n = len(tags)
+    subquery = db(ingr.id.belongs(tags)).select(ingr.id)
+    rows = db(t_smoothie.id == ingr_smuz.smuz) \
+            (ingr_smuz.ingr.belongs(subquery)).select(
+                t_smoothie.ALL,
+                orderby=t_smoothie.id,
+                groupby=t_smoothie.id,
+                having=t_smoothie.id.count() == n)
+    return rows
 
 def filter_smuz():
 
@@ -21,10 +34,9 @@ def filter_smuz():
     else:
         #   Create list from variables splited by separator
         ids = request.vars.ingr.split("%s")
+        smuzs = search_and(ids)
         # find anything with tags (from var list)
 
-    ingr = [x.tag_id for x in db(db.t_ingredient.id.belongs(ids)).select(db.t_ingredient.tag_id)]
-    smuz = db(db.t_smoothie.ingredient == ingr).select()
     # create recipe snippets as pure HTML (XML)
     result = []
     for smuz in smuzs:

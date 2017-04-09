@@ -28,10 +28,7 @@ db.define_table('t_category',
                 format='%(f_name)s',
                 migrate=settings.migrate)
 ########################################
-db.define_table('tag_ingr',
-                Field('name', type='string'),
-                format='%(name)s')
-########################################
+
 
 db.define_table('t_smoothie',
                 Field('f_name', type='string',
@@ -47,8 +44,7 @@ db.define_table('t_smoothie',
                       label=T('rating')),
                 Field('f_rated_count', type='integer', default=0,
                       label=T('rating count')),
-                Field('smuz_tags', 'list:reference tag_smuz'),
-                Field('ingredients', 'list:reference tag_ingr'),
+                Field('tags', 'list:reference tag_smuz'),
                 format='%(f_name)s',
                 migrate=settings.migrate)
 ########################################
@@ -61,10 +57,13 @@ db.define_table('t_ingredient',
                 Field('f_image', 'upload'),
                 Field('f_img', type='blob',
                       label=T('img')),
-                Field('tag_id', db.tag_ingr,
-                      label=T('tag id')),
                 format='%(f_name)s',
                 migrate=settings.migrate)
+########################################
+db.define_table('ingr_smuz',
+                Field('ingr', db.t_ingredient),
+                Field('smuz', db.t_smoothie),
+                format='%(name)s')
 ########################################
 
 db.define_table('t_rating',
