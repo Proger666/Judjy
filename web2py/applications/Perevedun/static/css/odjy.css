@@ -1,0 +1,27 @@
+.left_up {
+    position: relative;
+    right: -55px;
+    bottom: 453px;
+    width: 60%;
+}
+
+.left_up_input {
+    position: relative;
+    right: -55px;
+    bottom: 453px;
+}
+
+.right_up_input {
+    position: relative;
+    right: -58px;
+    bottom: 423px;
+    height: 30px;
+    width: 60%;
+}
+
+.right_up {
+    position: relative;
+    right: 489px;
+    bottom: 453px;
+    width: 60%;
+}

@@ -1,12 +1,28 @@
 {{extend 'layout.html'}}
-<div class="container">
+<link rel="stylesheet" href="{{=URL('static','css/fixme.css')}}"/>
 
-        <form action="#" enctype="multipart/form-data" method="post">
-<ul>
-  <li>Your name is <input name="name" /></li>
-</ul>
-  <input type="submit" />
-  <input type="hidden" name="_formname" value="test" />
-</form>
 
-</div>
+        <section class="create-recipe">
+                    {{=form.custom.begin}}
+            <section class="create-recipe__left-rail">
+                <div>
+                    <div class="add-photo">
+                        <label class="icon--picture gray">
+                    {{=form.custom.widget.f_image}}
+                        </label>
+                    </div>
+
+                    </div>
+
+            </section>
+            <section class="create-recipe__right-col">
+                <div class="create-recipe__right_data">
+                {{=T('Recipe title')}}{{=form.custom.widget.f_name}}
+                {{=T('Recipe title')}}{{=form.custom.widget.f_name}}
+                </div>
+            </section>
+             {{=form.custom.submit}}
+             {{=form.custom.end}}
+        </section>
+
+

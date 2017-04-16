@@ -97,28 +97,14 @@ def filter_smuz():
     return result
 
 
-def add_smuz():
-    form = SQLFORM.factory(db.t_smoothie)
-    if form.process(session=None, formname='test').accepted:
-        response.flash = 'form accepted'
-    elif form.errors:
-        response.flash = 'form has errors'
-    else:
-        response.flash = 'please fill the form'
-    if form.accepts(request, session):
-        redirect(URL('index'))
-    return locals()
+
 
 
 ### end requires
 def index():
     ingredients = db(db.t_ingredient).select()
-    smuzau = []
-
-    # Select all records and count em by ID result list then filter by count in descending order take 0 row and
-    # extract id
-    # top_prod = db(db.t_smoothie.id == db.t_review.f_product).select(db.t_product.id, count, groupby=db.t_product.id,
     smuzs = db(db.t_smoothie).select()
+    filter_smuz()
     #            orderby=~count)[0].t_product.id
     return locals()
 
@@ -186,3 +172,18 @@ def search_string():
                         BUTTON(I(_class='glyphicon glyphicon-search'), _type='submit', _class='btn btn-sm btn-primary'),
                         _class='input-group-btn'), _class="input-group"),
                 _class="navbar-form", _role="search").xml()
+
+def add_smuz():
+   form = SQLFORM(db.t_smoothie)
+   if form.process().accepted:
+       response.flash = 'form accepted'
+   elif form.errors:
+       response.flash = 'form has errors'
+   else:
+       response.flash = 'please fill out the form'
+
+   return dict(form=form)
+
+def download():
+    return response.download(request, db)
+

@@ -1,0 +1,92 @@
+@media(min-width: 768px) {
+    .create-recipe__left-rail {
+        width:34%;
+        position: relative;
+        float: left
+    }
+}
+.add-photo {
+    float: left;
+    width: 140px;
+    height: 110px;
+    text-align: center;
+    border: 1px dashed #e6e6e6;
+    margin: 0 25% 1rem;
+    display: block
+}
+.create-recipe {
+    float: left;
+    width: 140px;
+    height: 110px;
+    text-align: center;
+    margin: 0 25% 1rem;
+    display: block
+}
+@media(min-width: 568px) {
+    .create-recipe .add-photo {
+        margin-left:37.5%;
+        margin-right: 37.5%
+    }
+}
+
+@media(min-width: 768px) {
+    .create-recipe .add-photo {
+        margin-left:24%;
+        margin-right: 24%
+    }
+}
+
+@media(min-width: 1024px) {
+    .create-recipe .add-photo {
+        width:276px;
+        height: 185px;
+        margin-left: 0
+    }
+}
+
+.create-recipe .icon--picture.gray {
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 140px;
+    height: 110px;
+    display: block;
+    background-size: 40%;
+    transform: scale(1);
+    background-position: center 30px;
+    opacity: .7
+}
+
+@media(min-width: 1024px) {
+    .create-recipe .icon--picture.gray {
+        width:276px;
+        height: 185px;
+        background-position: center 35px;
+        background-size: 36%
+    }
+}
+
+.create-recipe .icon--picture.gray input[type="file"] {
+    opacity: 0
+}
+
+.create-recipe .icon--picture.gray:after {
+    content: "Take a photo";
+    display: block;
+    margin-top: 3.6rem;
+    font-weight: 300;
+    font-size: 16px;
+    font-size: 1rem
+}
+
+@media(min-width: 1024px) {
+    .create-recipe .icon--picture.gray:after {
+        margin-top:7rem
+    }
+}
+
+@media(min-width: 1025px) {
+    .create-recipe .icon--picture.gray:after {
+        content:"Add a photo"
+    }
+}
