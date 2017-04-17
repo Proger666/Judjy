@@ -215,3 +215,85 @@ CREATE TABLE t_recipe_ingr(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 success!
+timestamp: 2017-04-17T22:26:05.060000
+ALTER TABLE t_recipe ADD f_num_serv INT  , ADD INDEX f_num_serv__idx (f_num_serv), ADD FOREIGN KEY (f_num_serv) REFERENCES t_smoothie (id) ON DELETE CASCADE;
+success!
+timestamp: 2017-04-17T22:26:05.220000
+ALTER TABLE t_recipe ADD f_cook_time INT  , ADD INDEX f_cook_time__idx (f_cook_time), ADD FOREIGN KEY (f_cook_time) REFERENCES t_smoothie (id) ON DELETE CASCADE;
+success!
+success!
+timestamp: 2017-04-17T22:26:05.363000
+ALTER TABLE t_recipe_archive ADD f_num_serv INT  , ADD INDEX f_num_serv__idx (f_num_serv), ADD FOREIGN KEY (f_num_serv) REFERENCES t_smoothie (id) ON DELETE CASCADE;
+success!
+timestamp: 2017-04-17T22:26:05.488000
+ALTER TABLE t_recipe_archive ADD f_cook_time INT  , ADD INDEX f_cook_time__idx (f_cook_time), ADD FOREIGN KEY (f_cook_time) REFERENCES t_smoothie (id) ON DELETE CASCADE;
+success!
+success!
+timestamp: 2017-04-17T22:26:56.938000
+ALTER TABLE t_recipe ADD f_num_serv__tmp INT;
+success!
+UPDATE t_recipe SET f_num_serv__tmp=f_num_serv;
+success!
+ALTER TABLE t_recipe DROP COLUMN f_num_serv;
+timestamp: 2017-04-17T22:28:55.362000
+ALTER TABLE t_recipe ADD f_cook_time__tmp INT;
+success!
+UPDATE t_recipe SET f_cook_time__tmp=f_cook_time;
+success!
+ALTER TABLE t_recipe DROP COLUMN f_cook_time;
+timestamp: 2017-04-17T22:30:11.577000
+ALTER TABLE t_recipe_archive ADD f_num_serv__tmp INT;
+success!
+UPDATE t_recipe_archive SET f_num_serv__tmp=f_num_serv;
+success!
+ALTER TABLE t_recipe_archive DROP COLUMN f_num_serv;
+timestamp: 2017-04-17T22:31:49.423000
+ALTER TABLE t_recipe_archive ADD f_cook_time__tmp INT;
+success!
+UPDATE t_recipe_archive SET f_cook_time__tmp=f_cook_time;
+success!
+ALTER TABLE t_recipe_archive DROP COLUMN f_cook_time;
+timestamp: 2017-04-17T22:44:24.551000
+CREATE TABLE t_recipe(
+    id INT AUTO_INCREMENT NOT NULL,
+    f_name VARCHAR(512),
+    f_date DATETIME,
+    f_fulltext VARCHAR(512),
+    f_smoothie INT  , INDEX f_smoothie__idx (f_smoothie), FOREIGN KEY (f_smoothie) REFERENCES t_smoothie (id) ON DELETE CASCADE,
+    f_cook_time INT,
+    f_num_serv INT,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT  , INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT  , INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2017-04-17T22:44:24.617000
+CREATE TABLE t_recipe_archive(
+    id INT AUTO_INCREMENT NOT NULL,
+    f_name VARCHAR(512),
+    f_date DATETIME,
+    f_fulltext VARCHAR(512),
+    f_smoothie INT  , INDEX f_smoothie__idx (f_smoothie), FOREIGN KEY (f_smoothie) REFERENCES t_smoothie (id) ON DELETE CASCADE,
+    f_cook_time INT,
+    f_num_serv INT,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT  , INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT  , INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    current_record INT  , INDEX current_record__idx (current_record), FOREIGN KEY (current_record) REFERENCES t_recipe (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2017-04-17T22:44:24.673000
+CREATE TABLE t_recipe_ingr(
+    id INT AUTO_INCREMENT NOT NULL,
+    f_recipe INT  , INDEX f_recipe__idx (f_recipe), FOREIGN KEY (f_recipe) REFERENCES t_recipe (id) ON DELETE CASCADE,
+    f_ingr INT  , INDEX f_ingr__idx (f_ingr), FOREIGN KEY (f_ingr) REFERENCES t_ingredient (id) ON DELETE CASCADE,
+    f_quantity VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!

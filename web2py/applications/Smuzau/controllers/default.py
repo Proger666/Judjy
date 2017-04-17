@@ -179,9 +179,6 @@ def add_smuz():
        response.flash = 'form accepted'
    elif form.errors:
        response.flash = 'form has errors'
-   else:
-       response.flash = 'please fill out the form'
-
    return dict(form=form)
 
 def download():

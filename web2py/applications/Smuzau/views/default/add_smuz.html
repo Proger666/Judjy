@@ -1,28 +1,56 @@
 {{extend 'layout.html'}}
 <link rel="stylesheet" href="{{=URL('static','css/fixme.css')}}"/>
 
-
-        <section class="create-recipe">
-                    {{=form.custom.begin}}
-            <section class="create-recipe__left-rail">
-                <div>
-                    <div class="add-photo">
-                        <label class="icon--picture gray">
+        {{=form.custom.begin}}
+        <div class="col-md-6" id="leftWing">
+            <div class="add-photo create-recipe">
+                <label class="icon--picture gray">
                     {{=form.custom.widget.f_image}}
-                        </label>
-                    </div>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-6" id="rightWing">
+            <div class="col-md-4">
+            <label>{{=T('Recipe title')}}</label>
+            {{=form.custom.widget.f_name}}
+            <label>{{=T('Description')}}</label>
+            {{=form.custom.widget.f_fulltext}}
+            </div>
+            <div class="col-md-2">
+            <label>{{=T('Cook Time')}}</label>
+            {{=form.custom.widget.f_cook_time}}
+            <label>{{=T('Number of servings')}}</label>
+            {{=form.custom.widget.f_num_serv}}
+            </div>
+                <div id="add_ingr">
+                <button class="btn btn-primary btn-round" id="add_ingr_button">{{=T('Add more Ingredient')}}</button>
 
-                    </div>
 
-            </section>
-            <section class="create-recipe__right-col">
-                <div class="create-recipe__right_data">
-                {{=T('Recipe title')}}{{=form.custom.widget.f_name}}
-                {{=T('Recipe title')}}{{=form.custom.widget.f_name}}
                 </div>
-            </section>
-             {{=form.custom.submit}}
-             {{=form.custom.end}}
-        </section>
+            </div>
+        {{=form.custom.submit}}
+        {{=form.custom.end}}
+
+        <script>
+            $(document).ready(function() {
+             var max_fields      = 10; //maximum input boxes allowed
+             var wrapper         = $("#add_ingr"); //Fields wrapper
+             var add_button      = $("#add_ingr_button"); //Add button ID
+
+             var x = 1; //initlal text box count
+             $(add_button).click(function(e){ //on add input button click
+                 e.preventDefault();
+                 if(x < max_fields){ //max input box allowed
+                     x++; //text box increment
+                     $(wrapper).append('<div><input type="text" name="mytext[]"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
+                 }
+             });
+
+             $(wrapper).on("click",".remove_field", function(e){ //user click on remove text
+                 e.preventDefault(); $(this).parent('div').remove(); x--;
+             })
+                });
+
+        </script>
 
 
