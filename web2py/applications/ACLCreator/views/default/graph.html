@@ -25,9 +25,9 @@
 </style>
 <svg width="960" height="2000"></svg>
 <script src="{{=URL('static', 'd3/d3.js')}}"></script>
-
+<a href="{{=URL('download', args=csv_file.f_data)}}">asd</a>
 <script>
-    var csvFile = "{{=csv_file}}"
+    var csvFile = "{{=URL('download', args=csv_file.f_data)}}"
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height"),
