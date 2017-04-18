@@ -1,0 +1,50 @@
+{{extend 'layout.html'}}
+
+    <div class="col-md-11">
+           <form action="#" enctype="multipart/form-data" method="post">
+
+               <div class="col-md-5">
+                      CSV File <input type='file' name="csv_file" />
+               </div>
+               <div class="col-md-5">
+                        <div id="wrapper">
+
+                        </div>
+               </div>
+                      <input type="submit" />
+                      <input type="hidden" name="_formname" value="test" />
+                    </form>
+
+        </div>
+         <div class="col-md-1">
+                    <button id="add_field_button" class="btn btn-primary">Add Zone</button>
+        </div>
+
+
+        <script>
+
+            $(document).ready(function() {
+                var max_fields = 10; //maximum input boxes allowed
+                var wrapper = $("#wrapper"); //Fields wrapper
+                var add_button = $("#add_field_button"); //Add button ID
+
+
+                var x = 1; //initlal text box count
+                $(add_button).click(function (e) { //on add input button click
+                    e.preventDefault();
+                    if (x < max_fields) { //max input box allowed
+                        x++; //text box increment
+                        $(wrapper).append('<div> ' +
+                                            '<label id="zone_name">Zone name</label><input id=' + (x++) + ' type="text" name="zone_name"> </div><div> ' +
+                                            ' <label id="ip_range">IP range</label><input id=' + (x++) + ' type="text" name="ip_range"></div> ' +
+                                            ' <a href="#" class="remove_field">Remove</a></div>');
+                    }
+                });
+
+                $(wrapper).on("click", ".remove_field", function (e) { //user click on remove text
+                    e.preventDefault();
+                    $(this).parent('div').remove();
+                    x--;
+                })
+            });
+        </script>
