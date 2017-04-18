@@ -19,6 +19,12 @@ def index():
 
 def graph():
     csv_file = db(db.t_cache.f_name.like(request.vars.file_name)).select().first()
+    import csv
+    request.args=csv_file.f_data
+    file = download()
+    spamreader = csv.reader(file, delimiter=',', quotechar='|')
+    for row in spamreader:
+        print row
     return locals()
 
 def error():
