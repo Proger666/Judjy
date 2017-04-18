@@ -23,6 +23,14 @@ def index():
         url = 'http://127.0.0.1:8000'+URL('download', args=file.f_data)
         import pandas as pd
         data = pd.read_csv(url)
+        with open('output.csv', 'wb') as csvfile:
+            spamwriter = csv.writer(csvfile, delimiter=',')
+            spamwriter.writerow(['id'] + ['value'])
+            x = -1
+            spamwriter.writerow([data.values[0][0]])
+            while x < data.values.shape[0]:
+                spamwriter.writerow([data.values[0][0] + '.' + data.values])
+            spamwriter.writerow(['', 'Lovely Spam', 'Wonderful Spam'])
         redirect(URL('default', 'graph', vars={'file_name':request.vars.csv_file.filename}))
     return locals()
 
