@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="{{=URL('static','css/fixme.css')}}"/>
 
         {{=form.custom.begin}}
+        {{=form.custom.widget.f_date}}
         <div class="col-md-6" id="leftWing">
             <div class="add-photo create-recipe">
                 <label class="icon--picture gray">
@@ -21,6 +22,7 @@
             {{=form.custom.widget.f_cook_time}}
             <label>{{=T('Number of servings')}}</label>
             {{=form.custom.widget.f_num_serv}}
+
             </div>
                 <div id="add_ingr">
                 <button class="btn btn-primary btn-round" id="add_ingr_button">{{=T('Add more Ingredient')}}</button>
