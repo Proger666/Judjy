@@ -23,14 +23,23 @@ def index():
         url = 'http://127.0.0.1:8000'+URL('download', args=file.f_data)
         import pandas as pd
         data = pd.read_csv(url)
-        with open('output.csv', 'wb') as csvfile:
+        from os import path
+        with open(path.relpath('applications/ACLCreator/static/output.csv'), 'wb') as csvfile:
             spamwriter = csv.writer(csvfile, delimiter=',')
             spamwriter.writerow(['id'] + ['value'])
-            x = -1
-            spamwriter.writerow([data.values[0][0]])
-            while x < data.values.shape[0]:
-                spamwriter.writerow([data.values[0][0] + '.' + data.values])
-            spamwriter.writerow(['', 'Lovely Spam', 'Wonderful Spam'])
+            prex = -1
+            for i in range(data.values.shape[0]):
+                    x = data.values[i][0]
+                    if x is not prex:
+                        spamwriter.writerow([x])
+                        spamwriter.writerow([x + ';' + data.values[i][1]])
+                        spamwriter.writerow(
+                            [x + ';' + data.values[i][1] + ';' + str(data.values[i][2]), str(data.values[i][3])])
+                        prex = x
+                    else:
+                        spamwriter.writerow([x + ';' + data.values[i][1]])
+                        spamwriter.writerow(
+                        [x + ';' + data.values[i][1] + ';' + str(data.values[i][2]), str(data.values[i][3])])
         redirect(URL('default', 'graph', vars={'file_name':request.vars.csv_file.filename}))
     return locals()
 
