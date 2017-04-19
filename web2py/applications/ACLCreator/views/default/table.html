@@ -1,0 +1,29 @@
+{{extend 'layout.html'}}
+
+        <div class="table-responsive">
+ <table class="table table-hover center-block">
+     <thead>
+     <tr>
+         <th>Source IP</th>
+     </tr>
+     </thead>
+     <tbody>
+     {{m = 0}}
+     {{for i in range(0,len(src_ip),5):}}
+        {{if m == len(src_ip):}}
+            {{break}}
+        <tr>
+            {{for j in range(0,16):}}
+            <td>
+            {{if m < len(src_ip):}}
+            {{=A(src_ip[m], _href=URL('default', 'graph', vars={'ip': src_ip[m]}))}}
+                  {{m = m + 1 }}
+            </td>
+            {{else:}}
+            {{break}}
+            {{pass}}
+        </tr>
+     {{pass}}
+</tbody>
+</table>
+</div>

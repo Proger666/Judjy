@@ -30,8 +30,8 @@
 
 
 <script>
-    var csvFile = "{{=URL('static','output.csv')}}"
-    var csvFile1 = "{{=URL('download', args=csv_file.f_data)}}"
+    var csvFile = "{{=URL('static','output.csv')}}";
+    var csvFile1 = "{{=URL('download', args=csv_file.f_data)}}";
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height"),
@@ -73,7 +73,7 @@ d3.csv(csvFile, function(error, data) {
 
   node.append("text")
       .attr("dy", 3)
-      .attr("x", function(d) { return d.children ? -8 : 8; })
+      .attr("x", function(d) { return d.children ? 25 : 8; })
       .style("text-anchor", function(d) { return d.children ? "end" : "start"; })
       .text(function(d) { return d.id.substring(d.id.lastIndexOf(";") + 1); });
 });
