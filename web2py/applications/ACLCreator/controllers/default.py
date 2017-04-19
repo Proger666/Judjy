@@ -50,13 +50,13 @@ def graph():
                 spamwriter.writerow([x])
                 spamwriter.writerow([x + ';' + data.values[i][1]])
                 spamwriter.writerow(
-                    [x + ';' + data.values[i][1] + ';' + (str(data.values[i][2]) ),
+                    [x + ';' + data.values[i][1] + ';' + (str(data.values[i][2])),
                      str(data.values[i][3])])
                 prex = x
             else:
                 spamwriter.writerow([ x + ';' + data.values[i][1]])
                 spamwriter.writerow(
-                    [x + ';' + data.values[i][1] + ';' +  (str(data.values[i][2])),
+                    [x + ';' + data.values[i][1] + ';' + (str(data.values[i][2])),
                      str(data.values[i][3])])
     return locals()
 

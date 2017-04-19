@@ -10313,7 +10313,7 @@ var stratify = function() {
       } else {
         parent = nodeByKey[keyPrefix$1 + nodeId];
         if (!parent) throw new Error("missing: " + nodeId);
-        if (parent === ambiguous) throw new Error("ambiguous: " + nodeId);
+        //if (parent === ambiguous) throw new Error("ambiguous: " + nodeId);
         if (parent.children) parent.children.push(node);
         else parent.children = [node];
         node.parent = parent;
@@ -10324,7 +10324,7 @@ var stratify = function() {
     root.parent = preroot;
     root.eachBefore(function(node) { node.depth = node.parent.depth + 1; --n; }).eachBefore(computeHeight);
     root.parent = null;
-    if (n > 0) throw new Error("cycle");
+    //if (n > 0) throw new Error("cycle");
 
     return root;
   }

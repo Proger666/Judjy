@@ -69,11 +69,11 @@ d3.csv(csvFile, function(error, data) {
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
 
   node.append("circle")
-      .attr("r", 2.5);
+      .attr("r", 8);
 
   node.append("text")
       .attr("dy", 3)
-      .attr("x", function(d) { return d.children ? 25 : 8; })
+      .attr("x", function(d) { return d.children ? 40 : 8; })
       .style("text-anchor", function(d) { return d.children ? "end" : "start"; })
       .text(function(d) { return d.id.substring(d.id.lastIndexOf(";") + 1); });
 });
