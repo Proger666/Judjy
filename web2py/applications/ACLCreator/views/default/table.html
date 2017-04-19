@@ -16,7 +16,7 @@
             {{for j in range(0,16):}}
             <td>
             {{if m < len(src_ip):}}
-            {{=A(src_ip[m], _href=URL('default', 'graph', vars={'ip': src_ip[m]}))}}
+            {{=A(src_ip[m], _href=URL('default', 'graph', vars={'ip': src_ip[m], 'filename':request.vars.filename}))}}
                   {{m = m + 1 }}
             </td>
             {{else:}}

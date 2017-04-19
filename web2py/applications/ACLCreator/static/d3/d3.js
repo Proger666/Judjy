@@ -10286,7 +10286,7 @@ var stratify = function() {
       parentId = defaultParentId;
 
   function stratify(data) {
-    var d,
+    let d,
         i,
         n = data.length,
         root,
