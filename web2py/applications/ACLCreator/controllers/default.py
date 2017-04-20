@@ -37,7 +37,7 @@ def index():
 def graph():
     csv_file = db(db.t_cache.f_name.like(request.vars.filename)).select().first()
     data = pd.read_csv(db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
-    data = data.loc[data['source.ip: Descending'] == request.vars.ip, ['dest.ip: Descending', 'dest.port: Descending']]
+    data = data.loc[(data['source.ip: Descending'] == request.vars.ip) & (data['dest.port: Descending'] <= 31000), ['dest.ip: Descending', 'dest.port: Descending']]
     with open(path.relpath('applications/ACLCreator/static/output.csv'), 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',')
         spamwriter.writerow(['id'] + ['value'])
