@@ -5,7 +5,22 @@
 
                <div class="col-md-5">
                       CSV File <input type='file' name="csv_file" />
+                    <table class="table table-responsive table-hover">
+                 <thead>
+                 <tr>
+                     <td>Files in DB</td>
+                 </tr>
+                 </thead>
+                 <tbody>
+                 {{for row in current_files:}}
+                 <tr>
+                     <td><a href="{{=URL('default', 'table', vars={'filename':row.f_name})}}">{{=row.f_name}}</a></td>
+                 </tr>
+                 {{pass}}
+                 </tbody>
+             </table>
                </div>
+
                <div class="col-md-5">
                         <div id="wrapper">
 
@@ -15,10 +30,13 @@
                       <input type="hidden" name="_formname" value="test" />
                     </form>
 
+
         </div>
          <div class="col-md-1">
                     <button id="add_field_button" class="btn btn-primary">Add Zone</button>
-        </div>
+
+         </div>
+
 
 
         <script>

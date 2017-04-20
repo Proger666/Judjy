@@ -5,7 +5,7 @@
 }
 
 .node text {
-  font: 10px sans-serif;
+  font: 15px sans-serif;
 }
 
 .node--internal circle {
@@ -25,13 +25,9 @@
 </style>
 <svg width="960" height="2000"></svg>
 <script src="{{=URL('static', 'd3/d3.js')}}"></script>
-<a href="{{=URL('download', args=csv_file.f_data)}}">asd</a>
-
-
 
 <script>
-    var csvFile = "{{=URL('static','output.csv')}}";
-    var csvFile1 = "{{=URL('download', args=csv_file.f_data)}}";
+var csvFile = "{{=URL('static','output.csv')}}";
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height"),
@@ -73,9 +69,8 @@ d3.csv(csvFile, function(error, data) {
 
   node.append("text")
       .attr("dy", 3)
-      .attr("x", function(d) { return d.children ? 40 : 8; })
+      .attr("x", function(d) { return d.children ? 60 : 8; })
       .style("text-anchor", function(d) { return d.children ? "end" : "start"; })
       .text(function(d) { return d.id.substring(d.id.lastIndexOf(";") + 1); });
 });
-
 </script>
