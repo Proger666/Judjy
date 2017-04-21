@@ -20,5 +20,7 @@ db.define_table('t_cache',
                       label=T('Name')),
                 Field('f_data', 'upload',
                       label=T('Data')),
+                Field('f_ports', type='integer',
+                      label=T('Ports')),
                 format='%(f_name)s',
                 migrate=settings.migrate)

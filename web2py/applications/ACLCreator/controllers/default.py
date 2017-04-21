@@ -6,7 +6,7 @@ import pandas as pd
 import csv
 import io
 from os import path
-
+import xlrd
 
 def user(): return dict(form=auth())
 
@@ -16,9 +16,35 @@ def download(): return response.download(request, db)
 
 def call(): return service()
 
+def zones():
+    if request.vars.segment_file is not None and len(request.vars) is not 0:
+        f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename
+        db.t_cache.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
+        db.commit()
+        xl_file = io.StringIO
+        xl_file.write(db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
+        workbook = xlrd.open_workbook(file_contents=request.vars.segment_file.file.read())
+        sheet_names = workbook.sheet_names()
+        for sheet in sheet_names:
+            num_rows = sheet.nrows - 1
+            num_cells = sheet.ncols - 1
+            curr_row = -1
+            while curr_row < num_rows:
+                curr_row += 1
+                row = sheet.row(curr_row)
+                curr_cell = -1
+                while curr_cell < num_cells:
+                    curr_cell += 1
+                    # Cell Types: 0=Empty, 1=Text, 2=Number, 3=Date, 4=Boolean, 5=Error, 6=Blank
+                    cell_type = sheet.cell_type(curr_row, curr_cell)
+                    cell_value = sheet.cell_value(curr_row, curr_cell)
+                    # get cell data and column name
+
+    return locals()
 
 def table():
     data = pd.read_csv(db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
+    ports = db(db.t_cache.f_name.like(request.vars.filename)).select(db.t_cache.f_ports).first()
     src_ip = data['source.ip: Descending'].unique()
     return locals()
 
@@ -28,16 +54,18 @@ def index():
     current_files = db(db.t_cache.f_data).select()
     if request.vars.csv_file is not '' and len(request.vars) is not 0:
         f_id = str(datetime.datetime.now().microsecond) + request.vars.csv_file.filename
-        db.t_cache.insert(f_data=request.vars.csv_file, f_name=f_id)
+        db.t_cache.insert(f_data=request.vars.csv_file, f_name=f_id, f_ports=request.vars.ports)
         db.commit()
-        redirect(URL('default', 'table', vars={'filename':f_id}))
+        redirect(URL('default', 'table', vars={'filename':f_id, 'ports':request.vars.ports}))
     return locals()
 
 
 def graph():
     csv_file = db(db.t_cache.f_name.like(request.vars.filename)).select().first()
     data = pd.read_csv(db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
-    data = data.loc[(data['source.ip: Descending'] == request.vars.ip) & (data['dest.port: Descending'] <= 31000), ['dest.ip: Descending', 'dest.port: Descending']]
+    data = data.loc[(data['source.ip: Descending'] == request.vars.ip)
+                    & (data['dest.port: Descending'] <= int(request.vars.ports)),
+                    ['dest.ip: Descending', 'dest.port: Descending']]
     with open(path.relpath('applications/ACLCreator/static/output.csv'), 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',')
         spamwriter.writerow(['id'] + ['value'])
