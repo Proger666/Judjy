@@ -180,6 +180,7 @@
 'password': 'пароль',
 "Password fields don't match": 'Пароли не совпадают',
 'Plugins': 'Plugins',
+'Ports': 'Ports',
 'Powered by': 'Powered by',
 'Preface': 'Preface',
 'previous 100 rows': 'предыдущие 100 строк',

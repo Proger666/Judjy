@@ -20,7 +20,7 @@ db.define_table('t_cache',
                       label=T('Name')),
                 Field('f_data', 'upload',
                       label=T('Data')),
-                Field('f_ports', type='integer',
+                Field('f_ports', type='integer', default='20000',
                       label=T('Ports')),
                 format='%(f_name)s',
                 migrate=settings.migrate)
