@@ -10,11 +10,7 @@
                  </tr>
                  </thead>
                  <tbody>
-                 {{for row in current_files:}}
-                 <tr>
-                     <td><a href="{{=URL('default', 'acl', vars={'filename_s':row.f_name, 'filename_t':request.vars.filename})}}">{{=row.f_name}}</a></td>
-                 </tr>
-                 {{pass}}
+
                  </tbody>
              </table>
                </div>
