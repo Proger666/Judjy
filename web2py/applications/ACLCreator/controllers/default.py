@@ -21,10 +21,9 @@ def zones():
         f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename
         db.t_cache.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
         db.commit()
-        xl_file = io.StringIO
-        xl_file.write(db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
-        workbook = xlrd.open_workbook(file_contents=request.vars.segment_file.file.read())
-        sheet_names = workbook.sheet_names()
+        xl = pd.ExcelFile(db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(f_id)).select().first().f_data)[1])
+        # remove unicode and cast to STR
+        sheet_names = [str(x) for x in xl.sheet_names]
         for sheet in sheet_names:
             num_rows = sheet.nrows - 1
             num_cells = sheet.ncols - 1
