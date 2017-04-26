@@ -17,7 +17,7 @@ def call(): return service()
 
 def zones():
     if request.vars.segment_file is not None and len(request.vars) is not 0:
-        ports = db(db.t_cache.f_name.like(request.vars.filename).select(db.t_cache.f_ports).first())
+        ports = db(db.t_cache.f_name.like(request.vars.filename)).select(db.t_cache.f_ports).first().f_ports
         f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename
         db.t_cache.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
         db.commit()
@@ -32,8 +32,13 @@ def zones():
             zone_ips = [str(x) for x in sheet.col_values(1)]
             # remove unicode and cast to STR
             zone_name = str(sheet.name)
-            # filter by label source.ip and find all ip inside it
+            # filter by label source.ip and find all ip that is belongs to zone inside source DATA
             source_tree = data[(data['source.ip: Descending'].isin(zone_ips) & (data['dest.port: Descending'] <= int(ports)))]
+            # Group by DEST IP - tree to DEST ip address so dest ip - list of all who interacte with it
+            dest_tree = source_tree.groupby(['dest.ip: Descending', 'dest.port: Descending', 'source.ip: Descending'],
+                                as_index=False).mean()
+            # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
+            non_uniq_src_count = dest_tree.groupby(['dest.ip: Descending', 'dest.port: Descending'])['source.ip: Descending'].nunique()
             num_rows = sheet.nrows - 1
             num_cells = sheet.ncols - 1
             curr_row = -1
