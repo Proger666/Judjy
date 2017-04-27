@@ -10,6 +10,11 @@
                  </tr>
                  </thead>
                  <tbody>
+                 {{for row in rows:}}
+                 <tr>
+                     <td><a href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename})}}">{{=row.f_name}}</a></td>
+                 </tr>
+                 {{pass}}
 
                  </tbody>
              </table>

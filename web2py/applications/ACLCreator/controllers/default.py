@@ -16,18 +16,21 @@ def download(): return response.download(request, db)
 def call(): return service()
 
 def zones():
+    rows = db(db.t_cache.f_name.like('%Segment%')).select()
     if request.vars.segment_file is not None and len(request.vars) is not 0:
         ports = db(db.t_cache.f_name.like(request.vars.filename)).select(db.t_cache.f_ports).first().f_ports
-        f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename
-        db.t_cache.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
-        db.commit()
+        if hasattr(request.vars.segment_file, 'file'):
+            f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename
+            db.t_cache.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
+            db.commit()
+        else:
+            f_id = request.vars.segment_file
         xl = pd.ExcelFile(db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(f_id)).select().first().f_data)[1])
         # remove unicode and cast to STR
         sheet_names = [str(x) for x in xl.sheet_names]
         sheets = xl.book.sheets()
         data = pd.read_csv(
             db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
-
         for sheet in sheets:
             zone_ips = [str(x) for x in sheet.col_values(1)]
             # remove unicode and cast to STR
@@ -64,7 +67,7 @@ def table():
 
 ### end requires
 def index():
-    current_files = db(db.t_cache.f_data).select()
+    current_files = db(db.t_cache.f_name.like('%data%')).select()
     if request.vars.csv_file is not '' and len(request.vars) is not 0:
         f_id = str(datetime.datetime.now().microsecond) + request.vars.csv_file.filename
         db.t_cache.insert(f_data=request.vars.csv_file, f_name=f_id, f_ports=request.vars.ports)
