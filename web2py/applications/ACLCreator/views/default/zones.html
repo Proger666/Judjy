@@ -12,7 +12,7 @@
                  <tbody>
                  {{for row in rows:}}
                  <tr>
-                     <td><a href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename})}}">{{=row.f_name}}</a></td>
+                     <td><a onclick="getInputFields()" href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename})}}">{{=row.f_name}}</a></td>
                  </tr>
                  {{pass}}
 
@@ -20,11 +20,39 @@
              </table>
                </div>
             <label>Max host to same ip
-            <input type="text" value="5" name="maxH"></label>
+            <input type="text" value="5" name="maxH" class="input-data"></label>
             <label>Obj prefix
-            <input type="text" value="auto_" name="objpref"></label>
+            <input type="text" value="auto_" name="objpref" class="input-data"></label>
 
 
                       <input type="submit" />
                       <input type="hidden" name="_formname" value="test" />
         </form>
+
+        <script>
+           function getInputFields() {
+                   event.preventDefault();
+           let e = document.getElementsByClassName('input-data');
+           for (i = 0; i < e.length ; i++ ) {
+               addQSParam(e[i].name, e[i].value)
+           }
+           window.location.href = window.location.href
+           }
+
+           function addQSParam(name, value) {
+    var url=window.location.href,
+    separator = (url.indexOf("?")=== -1)?"?":"&";
+        if (!(url.indexOf(name) === -1)) {
+           newParam=separator + value;
+           newUrl=url.replace(newParam,"");
+           newUrl+=newParam;
+        }
+        else {
+        newParam=separator + name + '=' + value;
+    newUrl=url.replace(newParam,"");
+    newUrl+=newParam;
+        }
+    window.history.pushState(null,"", newUrl);
+    }
+
+        </script>

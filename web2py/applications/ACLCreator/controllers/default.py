@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 ### required - do no delete
 import datetime
+
+import StringIO
 from pip._vendor.requests.packages.urllib3.util import url
 import pandas as pd
 import csv
@@ -15,9 +17,23 @@ def download(): return response.download(request, db)
 
 def call(): return service()
 
+
+def createRule(zone_name, src_ip, destIP, destPort, type, same_IP_h, obj_pref):
+    result = StringIO.StringIO()
+    if type == 'subnet-host':
+        result.write('abc')
+    elif type == 'host-host':
+        result.write('cvsa')
+    return result
+
+
 def zones():
     rows = db(db.t_cache.f_name.like('%Segment%')).select()
     if request.vars.segment_file is not None and len(request.vars) is not 0:
+        # bunch of defauls
+        sameIPhost = request.vars.maxH
+        objPref = request.vars.objpref
+        separator = '-'
         ports = db(db.t_cache.f_name.like(request.vars.filename)).select(db.t_cache.f_ports).first().f_ports
         if hasattr(request.vars.segment_file, 'file'):
             f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename
@@ -32,6 +48,7 @@ def zones():
         data = pd.read_csv(
             db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
         for sheet in sheets:
+            zone_rules = StringIO.StringIO
             zone_ips = [str(x) for x in sheet.col_values(1)]
             # remove unicode and cast to STR
             zone_name = str(sheet.name)
@@ -42,19 +59,23 @@ def zones():
                                 as_index=False).mean()
             # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
             non_uniq_src_count = dest_tree.groupby(['dest.ip: Descending', 'dest.port: Descending'])['source.ip: Descending'].nunique()
-            num_rows = sheet.nrows - 1
-            num_cells = sheet.ncols - 1
-            curr_row = -1
-            while curr_row < num_rows:
-                curr_row += 1
-                row = sheet.row(curr_row)
-                curr_cell = -1
-                while curr_cell < num_cells:
-                    curr_cell += 1
-                    # Cell Types: 0=Empty, 1=Text, 2=Number, 3=Date, 4=Boolean, 5=Error, 6=Blank
-                    cell_type = sheet.cell_type(curr_row, curr_cell)
-                    cell_value = sheet.cell_value(curr_row, curr_cell)
-                    # get cell data and column name
+            for dest_port, hitcount in non_uniq_src_count.iteritems():
+                if hitcount >= sameIPhost:
+                    zone_rules.write(zone_name + separator +
+                                     zone_name + '_IP' + separator +
+                                     + dest_port[0] + separator + dest_port[1] + separator
+                                     + 'comment: number of hist for this dest ip and port = ' + hitcount + ',')
+                else:
+                    temp_data = dest_tree.loc[dest_tree['dest.ip: Descending'] == '10.127.253.19', ['source.ip: Descending',
+                                                                                        'dest.ip: Descending',
+                                                                                        'dest.port: Descending']]
+                    for index, row in temp_data.iterrows():
+                        zone_rules.write(zone_name + separator +
+                                            row['source.ip: Descending'] + separator +
+                                         row['dest.ip: Descending']
+
+
+
 
     return locals()
 
