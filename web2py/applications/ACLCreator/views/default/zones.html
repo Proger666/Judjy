@@ -12,7 +12,7 @@
                  <tbody>
                  {{for row in rows:}}
                  <tr>
-                     <td><a onclick="getInputFields()" href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename})}}">{{=row.f_name}}</a></td>
+                     <td><a onclick="getInputFields(this)" href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename})}}">{{=row.f_name}}</a></td>
                  </tr>
                  {{pass}}
 
@@ -30,11 +30,12 @@
         </form>
 
         <script>
-           function getInputFields() {
-                   event.preventDefault();
+           function getInputFields(obj) {
+               event.preventDefault();
+               window.history.pushState(null,"", obj.getAttribute("href"));
            let e = document.getElementsByClassName('input-data');
            for (i = 0; i < e.length ; i++ ) {
-               addQSParam(e[i].name, e[i].value)
+               addQSParam(e[i].name, e[i].value, obj.getAttribute("href"))
            }
            window.location.href = window.location.href
            }
