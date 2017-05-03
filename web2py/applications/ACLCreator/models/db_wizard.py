@@ -22,5 +22,7 @@ db.define_table('t_cache',
                       label=T('Data')),
                 Field('f_ports', type='integer', default='20000',
                       label=T('Ports')),
+                Field('f_str_data', type='string',
+                      label=T('data object')),
                 format='%(f_name)s',
                 migrate=settings.migrate)

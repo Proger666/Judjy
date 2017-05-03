@@ -85,22 +85,33 @@ def zones():
             df_tmp['Zone_name'] = sheet.name
             xl_dataframe = xl_dataframe.append(df_tmp)
 
-        # Tag everything with src zone and dst zone
-        for index, row in data.iterrows():
-           try:
-               src_z_name = str(
-                xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].index[0]]['Zone_name'])
-           except IndexError:
-               data.ix[index, 'src_zone_name'] = 'UNKNOWN'
-           else:
-               data.ix[index, 'src_zone_name'] = src_z_name
-           try:
-               dst_z_name = str(
-                   xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].index[0]]['Zone_name'])
-           except IndexError:
-               data.ix[index, 'dst_zone_name'] = 'UNKNOWN'
-           else:
-               data.ix[index, 'dst_zone_name'] =  dst_z_name
+
+        # Check if file already processed
+        _tmp_row = db.t_cache(f_name='processed_' + request.vars.filename)
+        if not _tmp_row:
+            # Tag everything with src zone and dst zone
+            for index, row in data.iterrows():
+               try:
+                   src_z_name = str(
+                    xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].index[0]]['Zone_name'])
+               except IndexError:
+                   data.ix[index, 'src_zone_name'] = 'UNKNOWN'
+               else:
+                   data.ix[index, 'src_zone_name'] = src_z_name
+               try:
+                   dst_z_name = str(
+                       xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].index[0]]['Zone_name'])
+               except IndexError:
+                   data.ix[index, 'dst_zone_name'] = 'UNKNOWN'
+               else:
+                   data.ix[index, 'dst_zone_name'] =  dst_z_name
+
+                # Add processed file to cache
+            db.t_cache.insert(f_name='processed_' + request.vars.filename, f_str_data = data.to_csv(index=False))
+        else:
+          # delete object from memory if record already present
+          data = pd.read_csv(db(db.t_cache.f_name == _tmp_row.f_name).select(db.t_cache.f_str_data).first().f_str_data)
+        del _tmp_row
 
 
 
@@ -155,30 +166,30 @@ def zones():
             for dest_port, hitcount in aggregate_dst_hit.iteritems():
                 # Create src group obj
                 _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
-
                 objectGroup_network_tuple['obj_name'].append(_tmp_src_grp_obj)
-                if row[src_col] not in objectNetwork_tuple['value']:
-                    if validate_ip(row[src_col]):
-                        objectNetwork_tuple['value'].append(row[src_col])
-                    else:
-                        objectNetwork_tuple['value'].append('NOT ASSIGNED')
-                    objectNetwork_tuple['obj_name'].append(
-                        objPref + zone_sep_f + row['Zone_name'] + zone_sep_s + '_' + row[seg_IP_col])
-                    objectNetwork_tuple['description'].append()
-                    objectNetwork_tuple['type'].append('host')
+
 
                 if hitcount < sameIPhost:
                     abc = 1
                 else:
-
-
                     grouped = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]]
                     for src_ip in grouped[src_col]:
-                        # Add src obj
-                        objectGroup_network_tuple['members'].append(
-                            str(object_data.iloc[object_data.loc[object_data['value'] == src_ip].index[0]]['obj_name']))
-                        zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
-                                                 + dest_port[2] + ' object-group ' + _tmp_src_grp_obj + ' object-group ' + )
+                        # Create obj for every src if not exists
+                        if row[src_col] not in objectNetwork_tuple['value']:
+                            if validate_ip(row[src_col]):
+                                objectNetwork_tuple['value'].append(row[src_col])
+                            else:
+                                objectNetwork_tuple['value'].append('NOT ASSIGNED')
+                            objectNetwork_tuple['obj_name'].append(
+                                objPref + zone_sep_f + row['Zone_name'] + zone_sep_s + '_' + row[seg_IP_col])
+                            objectNetwork_tuple['description'].append()
+                            objectNetwork_tuple['type'].append('host')
+
+                            # Add src obj to group
+                            objectGroup_network_tuple['members'].append(
+                                str(object_data.iloc[object_data.loc[object_data['value'] == src_ip].index[0]]['obj_name']))
+                            zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
+                                                     + dest_port[2] + ' object-group ' + _tmp_src_grp_obj + ' object-group ' )
 
     return locals()
 
