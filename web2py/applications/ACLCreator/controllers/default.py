@@ -5,6 +5,8 @@ import datetime
 import StringIO
 
 import re
+
+from IPy import IP
 from pip._vendor.requests.packages.urllib3.util import url
 import pandas as pd
 import csv
@@ -31,6 +33,13 @@ def createRule(zone_name, src_ip, destIP, destPort, type, same_IP_h, obj_pref):
     return result
 
 
+def RFC1918(ip):
+    _ip = IP(str(ip))
+    _ipa = _ip.iptype()
+    return True if _ipa == 'PRIVATE' else False
+
+
+
 def zones():
     rows = db(db.t_cache.f_name.like('%Segment%')).select()
     if request.vars.segment_file is not None and len(request.vars) is not 0:
@@ -47,6 +56,7 @@ def zones():
         seg_VM_col = 'VM'
         seg_IP_col = 'Ip addres'
         src_obj_name = object
+        dst_obj_pref = 'obj-'
 
         # extract max ports that was saved in DB with data file
         maxPorts = db(db.t_cache.f_name.like(request.vars.filename)).select(db.t_cache.f_ports).first().f_ports
@@ -109,9 +119,13 @@ def zones():
                 # Add processed file to cache
             db.t_cache.insert(f_name='processed_' + request.vars.filename, f_str_data = data.to_csv(index=False))
         else:
-          # delete object from memory if record already present
-          data = pd.read_csv(db(db.t_cache.f_name == _tmp_row.f_name).select(db.t_cache.f_str_data).first().f_str_data)
-        del _tmp_row
+            # Create buffer to feed it to pandas
+          _tmp_buffer = StringIO.StringIO()
+          _tmp_buffer.write(db(db.t_cache.f_name == _tmp_row.f_name).select(db.t_cache.f_str_data).first().f_str_data)
+          _tmp_buffer.seek(0)
+          data = pd.read_csv(_tmp_buffer)
+        # delete object from memory if record already present
+        del _tmp_row, _tmp_buffer
 
 
 
@@ -159,39 +173,61 @@ def zones():
                 [dst_col, dstport_col, src_col, transport_col, 'src_zone_name', 'dst_zone_name'],
                 as_index=False).mean()
             # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
-            aggregate_dst_hit = dest_tree.groupby(['dest.ip: Descending', 'dest.port: Descending', 'transport: Descending'])[
-                'source.ip: Descending'].nunique()
-            index = 1
+            aggregate_dst_hit = dest_tree.groupby([dst_col, dstport_col, transport_col])[
+                src_col].nunique()
+
+            # Create DST obj if not present
+            for dest_port, hitcount in aggregate_dst_hit.iteritems():
+                if RFC1918(dest_port[0]):
+                    if dest_port[0] not in objectNetwork_tuple['value']:
+                        objectNetwork_tuple['value'].append(dest_port[0])
+                        objectNetwork_tuple['obj_name'].append(
+                            objPref + dst_obj_pref  + dest_port[0])
+                        objectNetwork_tuple['description'].append("LAN host")
+                        objectNetwork_tuple['type'].append('host')
+
+
             object_data = pd.DataFrame(objectNetwork_tuple)
+            index = 1
             for dest_port, hitcount in aggregate_dst_hit.iteritems():
                 # Create src group obj
                 _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
                 objectGroup_network_tuple['obj_name'].append(_tmp_src_grp_obj)
 
 
-                if hitcount < sameIPhost:
+                if hitcount > sameIPhost:
                     abc = 1
                 else:
                     grouped = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]]
                     for src_ip in grouped[src_col]:
                         # Create obj for every src if not exists
-                        if row[src_col] not in objectNetwork_tuple['value']:
-                            if validate_ip(row[src_col]):
-                                objectNetwork_tuple['value'].append(row[src_col])
+                        if src_ip not in objectNetwork_tuple['value']:
+                            if validate_ip(src_ip):
+                                objectNetwork_tuple['value'].append(src_ip)
                             else:
                                 objectNetwork_tuple['value'].append('NOT ASSIGNED')
                             objectNetwork_tuple['obj_name'].append(
-                                objPref + zone_sep_f + row['Zone_name'] + zone_sep_s + '_' + row[seg_IP_col])
-                            objectNetwork_tuple['description'].append()
+                                objPref + zone_sep_f + zone_name + zone_sep_s + '_' + src_ip)
+                            objectNetwork_tuple['description'].append("")
                             objectNetwork_tuple['type'].append('host')
 
-                            # Add src obj to group
-                            objectGroup_network_tuple['members'].append(
-                                str(object_data.iloc[object_data.loc[object_data['value'] == src_ip].index[0]]['obj_name']))
+                        # Add src obj to group
+                        objectGroup_network_tuple['members'].append( _findObjectName(object_data, src_ip))
+
+                        #Check if destination is RFC1918
+                        if RFC1918(dest_port[0]):
+                            _dst_obj = _findObjectName(object_data, dest_port[0])
                             zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
-                                                     + dest_port[2] + ' object-group ' + _tmp_src_grp_obj + ' object-group ' )
+                                                     + dest_port[
+                                                         2] + ' object-group ' + _tmp_src_grp_obj + ' object-group ' +
+                                                     _dst_obj)
+                index += 1
 
     return locals()
+
+def _findObjectName(object_data,src_ip):
+    result = str(object_data.iloc[object_data.loc[object_data['value'] == src_ip].index[0]]['obj_name'])
+    return result
 
 
 def validate_ip(s):
