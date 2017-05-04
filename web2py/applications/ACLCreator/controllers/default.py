@@ -39,6 +39,15 @@ def RFC1918(ip):
     return True if _ipa == 'PRIVATE' else False
 
 
+def broadcast(src_ip):
+    s = str(src_ip)
+    a = s.split('.')
+    if len(a) != 4:
+        return True
+    if (a[3] == 255 and a[2] == 255) or (a[3] == 0 and a[2] == 0):
+        return True
+    return False
+
 
 def zones():
     rows = db(db.t_cache.f_name.like('%Segment%')).select()
@@ -190,9 +199,7 @@ def zones():
             object_data = pd.DataFrame(objectNetwork_tuple)
             index = 1
             for dest_port, hitcount in aggregate_dst_hit.iteritems():
-                # Create src group obj
-                _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
-                objectGroup_network_tuple['obj_name'].append(_tmp_src_grp_obj)
+
 
 
                 if hitcount > sameIPhost:
@@ -200,6 +207,8 @@ def zones():
                 else:
                     grouped = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]]
                     for src_ip in grouped[src_col]:
+
+
                         # Create obj for every src if not exists
                         if src_ip not in objectNetwork_tuple['value']:
                             if validate_ip(src_ip):
@@ -212,10 +221,14 @@ def zones():
                             objectNetwork_tuple['type'].append('host')
 
                         # Add src obj to group
-                        objectGroup_network_tuple['members'].append( _findObjectName(object_data, src_ip))
+                        if _findObjectName(object_data, src_ip) not in objectGroup_network_tuple['members']:
+                            # Create src group obj
+                            _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
+                            objectGroup_network_tuple['obj_name'].append(_tmp_src_grp_obj)
+                            objectGroup_network_tuple['members'].append( _findObjectName(object_data, src_ip))
 
                         #Check if destination is RFC1918
-                        if RFC1918(dest_port[0]):
+                        if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
                             _dst_obj = _findObjectName(object_data, dest_port[0])
                             zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
                                                      + dest_port[
