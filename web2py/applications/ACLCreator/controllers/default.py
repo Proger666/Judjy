@@ -110,6 +110,7 @@ def zones():
         zone_sep_s = ']'
         zoneSubnetPref = ''
         dst_obj_pref = 'obj-'
+        serviceObjPref = 'DM_INLINE_SERVICE'     #'SERVICE_srv_'
 
         # extract max ports that was saved in DB with data file
         maxPorts = db(db.t_cache.f_name.like(request.vars.filename)).select(db.t_cache.f_ports).first().f_ports
@@ -235,7 +236,8 @@ def zones():
 
             # Create dst SERVICE group
             for dst_port, garbage in service_dst_grp.iteritems():
-                _tmp_port_grp_obj = objPref + 'SERVICE_srv_' + dst_port[0]
+
+                _tmp_port_grp_obj = serviceObjPref + dst_port[0]
 
                 if RFC1918(dst_port[0]) and not broadcast(dst_port[0]):
                     # Create SERVICE object for DST if not exist
