@@ -14,6 +14,13 @@ import io
 from os import path
 import xlsxwriter
 
+#TODO: GOD DA UGLY!!! erase me
+src_col = 'source.ip: Descending'
+dst_col = 'dest.ip: Descending'
+dstport_col = 'dest.port: Descending'
+transport_col = 'transport: Descending'
+seg_VM_col = 'VM'
+seg_IP_col = 'Ip addres'
 
 def user(): return dict(form=auth())
 
@@ -65,6 +72,35 @@ class GroupObject:
         return True if member in self.members else False
 
 
+def createConfig(zones_rules, object_data, objectGroup_network_list, objectGroup_service_list, port_data):
+    result = []
+    # create all objects
+    for index, row in object_data.iterrows():
+        result.append('object network ' + row['obj_name'] + '\n' +
+                      row['type'] + ' ' + row['value'] + '\n' +
+                      'description ' + row['description'])
+    for index, row in port_data.iterrows():
+        result.append('object service ' + row['obj_name'] + '\n' +
+                      row['value'])
+    for row in objectGroup_service_list['object']:
+        _str_tmp = 'object-group service ' + row.name + '\n'
+        for z in row.members:
+            _str_tmp = _str_tmp + 'service-object object ' + z + '\n'
+        result.append(_str_tmp)
+    for row in objectGroup_network_list['object']:
+        _str_tmp = 'object-group network ' + row.name + '\n'
+        for z in row.members:
+            _str_tmp = _str_tmp + 'network-object object ' + z + '\n'
+        result.append(_str_tmp)
+    result = result + zones_rules
+    return result
+
+
+
+
+
+
+
 def zones():
     rows = db(db.t_cache.f_name.like('%Segment%')).select()
     if request.vars.segment_file is not None and len(request.vars) is not 0:
@@ -75,13 +111,7 @@ def zones():
         separator = '-'
         zone_sep_f = '['
         zone_sep_s = ']'
-        src_col = 'source.ip: Descending'
-        dst_col = 'dest.ip: Descending'
-        dstport_col = 'dest.port: Descending'
-        transport_col = 'transport: Descending'
-        seg_VM_col = 'VM'
-        seg_IP_col = 'Ip addres'
-        src_obj_name = object
+        zoneSubnetPref = ''
         dst_obj_pref = 'obj-'
 
         # extract max ports that was saved in DB with data file
@@ -156,6 +186,7 @@ def zones():
         # delete object from memory if record already present
         del _tmp_row, _tmp_buffer
 
+
         # Create objects for all VMs from segment_file
         for index, row in xl_dataframe.iterrows():
             if row[seg_IP_col] not in objectNetwork_tuple['value']:
@@ -181,13 +212,15 @@ def zones():
             objectNetwork_tuple['obj_name'].append('zone_' + zone_sep_f + zone_name + zone_sep_s + '_NET')
             objectNetwork_tuple['type'].append('subnet')
             objectNetwork_tuple['description'].append('Zone ' + zone_name + ' subnet')
-            objectNetwork_tuple['value'].append(zone_name + '_IP')
+            objectNetwork_tuple['value'].append(zoneSubnetPref)
 
 
             ######################### SORTING DATA FOR CURRENT ZONE ################################
             zone_ips = xl_dataframe.loc[xl_dataframe['Zone_name'] == 'Main', seg_IP_col].tolist()
             # remove unicode and cast to STR
             zone_name = str(zone_name)
+            if zoneSubnetPref == '':
+                zoneSubnetPref = zone_name + '_IP'
             # filter by label source.ip and find all ip that is belongs to zone inside source DATA and dst not the same zone
             source_tree = data[
                 (data[src_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
@@ -199,8 +232,7 @@ def zones():
                 [dst_col, dstport_col, src_col, transport_col, 'src_zone_name', 'dst_zone_name'],
                 as_index=False).mean()
             # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
-            aggregate_dst_hit = dest_tree.groupby([dst_col, dstport_col, transport_col])[
-                src_col].nunique()
+            aggregate_dst_hit = dest_tree.groupby([dst_col])[src_col].nunique()
             service_dst_grp = dest_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].unique()
             port_data = pd.DataFrame(objectPort_tuple)
             ######################### END OF SORTING ################################
@@ -233,29 +265,26 @@ def zones():
             object_data = pd.DataFrame(objectNetwork_tuple)
             index = 1
             for dest_port, hitcount in aggregate_dst_hit.iteritems():
-
-                if hitcount > sameIPhost:
-                    # Check if destination is RFC1918 and not broadcast or net adress
-                    if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
-                        _dst_obj = _findObjectName(object_data, dest_port[0])
-                        _service_obj = _findServiceName(1, dest_port[0])
-                        zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
-                                                 + dest_port[
-                                                     2] + ' object-group ' + _findObjectName(object_data,
-                                                                                             zone_name + '_IP') + ' object-group ' +
-                                                 _dst_obj)
+              _service_obj = objectGroup_service_list['object'][
+                    objectGroup_service_list['obj_name'].index(objPref + objservicepref + dest_port)]
+              # Check if destination is RFC1918 and not broadcast or net adress
+              if RFC1918(dest_port) and not broadcast(dest_port):
+                if hitcount >= int(sameIPhost):
+                        _dst_obj = _findObjectName(object_data, dest_port)
+                        _service_obj = objectGroup_service_list['object'][objectGroup_service_list['obj_name'].index(objPref + objservicepref + dest_port)]
+                        zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit object-group '
+                                         + _service_obj.name + ' object-group ' + _findObjectName(object_data, zoneSubnetPref) +  ' object-group ' + _dst_obj)
                 else:
-                    grouped = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]]
-                    _service_obj = objectGroup_service_list['object'][objectGroup_service_list['obj_name'].index(objPref + objservicepref + dest_port[0])]
+                    grouped = dest_tree.loc[dest_tree[dst_col] == dest_port, [src_col]]
 
-                    # Create SERVICE object for DST if not exist
+                    # Create SERVICE object for SRC if not exist
                     _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
                     if _tmp_src_grp_obj not in objectGroup_network_list['obj_name']:
                         _network_obj = GroupObject(_tmp_src_grp_obj)
                         objectGroup_network_list['obj_name'].append(_tmp_src_grp_obj)
                         objectGroup_network_list['object'].append(_network_obj)
 
-                for src_ip in grouped[src_col]:
+                    for src_ip in grouped[src_col]:
 
                         # Create obj for every src if not exists
                         if src_ip not in objectNetwork_tuple['value']:
@@ -273,18 +302,21 @@ def zones():
                         # TUPLE [FIRST NAME] [ GET INDEX OF ELEMNT]. CALL MEMBER FUNC
                         _tmp_src_obj_name = _findObjectName(object_data, src_ip)
                         if not objectGroup_network_list['object'][
-                            objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].ismember(
-                                                _tmp_src_obj_name):
-                            objectGroup_network_list['object'][
-                                objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].addmember(_tmp_src_obj_name)
-                # Check if destination is RFC1918
-                if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
-                    _dst_obj = _findObjectName(object_data, dest_port[0])
-                    zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit object-group '
-                                             + _tmp_src_grp_obj + ' object-group ' + _tmp_src_grp_obj + ' object-group ' +
-                                             _dst_obj)
+                            objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].ismember(_tmp_src_obj_name):
+                                objectGroup_network_list['object'][
+                                    objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].addmember(_tmp_src_obj_name)
+                        #        Check if destination is RFC1918
+                    _dst_obj = _findObjectName(object_data, dest_port)
+                    zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit object-group ' +
+                                             _service_obj.name + ' object-group '
+                                         + _tmp_src_grp_obj + ' object-group ' + _tmp_src_grp_obj + ' object-group ' +
+                                         _dst_obj)
                 index += 1
-
+        config = createConfig(zone_rules_writer, object_data, objectGroup_network_list, objectGroup_service_list, port_data)
+        thefile = open('test.txt', 'w')
+        for item in config:
+            thefile.write("%s\n" % item)
+        thefile.close()
     return locals()
 
 
