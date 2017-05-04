@@ -44,9 +44,26 @@ def broadcast(src_ip):
     a = s.split('.')
     if len(a) != 4:
         return True
-    if (a[3] == 255 and a[2] == 255) or (a[3] == 0 and a[2] == 0):
+    if (a[3] == '255' and a[2] == '255') or (a[3] == '0' and a[2] == '0'):
         return True
     return False
+
+
+def _findServiceName(service_data, dst_ip):
+    result = str(
+        service_data.iloc[service_data.loc[service_data['obj_name'].str.contains(dst_ip)].index[0]]['obj_name'])
+    return result
+
+
+class GroupObject:
+    def __init__(self, name):
+        self.members = []
+        self.name = name
+
+    def addmember(self, members):
+        self.members.append(members)
+    def ismember(self, member):
+        return True if member in self.members else False
 
 
 def zones():
@@ -83,12 +100,11 @@ def zones():
             db.t_cache.f_data.retrieve(db(db.t_cache.f_name.like(request.vars.filename)).select().first().f_data)[1])
 
         # Objects for ACL
-        objectGroup_network_tuple = {'obj_name': [],
-                                     'members': []}
-        objectGroup_service_tuple = {'obj_name': [],
-                                     'members': []}
-        objectPort_tuple = {'obj_name': ['http', 'https'],
-                            'value': ['80', '443']}
+
+        objectGroup_network_list = []
+        ObjectGroup_service_list = []
+        objectPort_tuple = {'obj_name': [],
+                            'value': []}
         objectNetwork_tuple = {'obj_name': [],
                                'type': [],
                                'value': [],
@@ -104,40 +120,39 @@ def zones():
             df_tmp['Zone_name'] = sheet.name
             xl_dataframe = xl_dataframe.append(df_tmp)
 
-
         # Check if file already processed
         _tmp_row = db.t_cache(f_name='processed_' + request.vars.filename)
         if not _tmp_row:
             # Tag everything with src zone and dst zone
             for index, row in data.iterrows():
-               try:
-                   src_z_name = str(
-                    xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].index[0]]['Zone_name'])
-               except IndexError:
-                   data.ix[index, 'src_zone_name'] = 'UNKNOWN'
-               else:
-                   data.ix[index, 'src_zone_name'] = src_z_name
-               try:
-                   dst_z_name = str(
-                       xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].index[0]]['Zone_name'])
-               except IndexError:
-                   data.ix[index, 'dst_zone_name'] = 'UNKNOWN'
-               else:
-                   data.ix[index, 'dst_zone_name'] =  dst_z_name
+                try:
+                    src_z_name = str(
+                        xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].index[0]][
+                            'Zone_name'])
+                except IndexError:
+                    data.ix[index, 'src_zone_name'] = 'UNKNOWN'
+                else:
+                    data.ix[index, 'src_zone_name'] = src_z_name
+                try:
+                    dst_z_name = str(
+                        xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].index[0]][
+                            'Zone_name'])
+                except IndexError:
+                    data.ix[index, 'dst_zone_name'] = 'UNKNOWN'
+                else:
+                    data.ix[index, 'dst_zone_name'] = dst_z_name
 
-                # Add processed file to cache
-            db.t_cache.insert(f_name='processed_' + request.vars.filename, f_str_data = data.to_csv(index=False))
+            # Add processed file to cache
+            db.t_cache.insert(f_name='processed_' + request.vars.filename, f_str_data=data.to_csv(index=False))
         else:
             # Create buffer to feed it to pandas
-          _tmp_buffer = StringIO.StringIO()
-          _tmp_buffer.write(db(db.t_cache.f_name == _tmp_row.f_name).select(db.t_cache.f_str_data).first().f_str_data)
-          _tmp_buffer.seek(0)
-          data = pd.read_csv(_tmp_buffer)
+            _tmp_buffer = StringIO.StringIO()
+            _tmp_buffer.write(db(db.t_cache.f_name == _tmp_row.f_name).select(db.t_cache.f_str_data).first().f_str_data)
+            _tmp_buffer.seek(0)
+            # load file from cache
+            data = pd.read_csv(_tmp_buffer)
         # delete object from memory if record already present
         del _tmp_row, _tmp_buffer
-
-
-
 
         # Create objects for all VMS from segment_file
         for index, row in xl_dataframe.iterrows():
@@ -174,7 +189,8 @@ def zones():
             zone_name = str(zone_name)
             # filter by label source.ip and find all ip that is belongs to zone inside source DATA and dst not the same zone
             source_tree = data[
-                (data[src_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (data['dst_zone_name'] != zone_name))]
+                (data[src_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
+                data['dst_zone_name'] != zone_name))]
 
             source_tree['src_zone_name'] = zone_name
             # Group by DEST IP - tree to DEST ip address so dest ip - list of all who interacte with it
@@ -184,30 +200,47 @@ def zones():
             # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
             aggregate_dst_hit = dest_tree.groupby([dst_col, dstport_col, transport_col])[
                 src_col].nunique()
+            service_dst_grp = dest_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].unique()
+            port_data = pd.DataFrame(objectPort_tuple)
 
-            # Create DST obj if not present
-            for dest_port, hitcount in aggregate_dst_hit.iteritems():
-                if RFC1918(dest_port[0]):
-                    if dest_port[0] not in objectNetwork_tuple['value']:
-                        objectNetwork_tuple['value'].append(dest_port[0])
+            # Create SERVICE dst group
+            for dst_port, garbage in service_dst_grp.iteritems():
+                _tmp_port_grp_obj = objPref + 'SERVICE_srv_' + dst_port[0]
+                objectGroup_service = GroupObject(_tmp_port_grp_obj)
+
+                if RFC1918(dst_port[0]) and not broadcast(dst_port[0]):
+                    if objedst_port[2] + '_' + str(dst_port[1]):
+                        objectGroup_service_tuple['obj_name'].append(_tmp_port_grp_obj)
+                        objectGroup_service_tuple['members'].append(dst_port[2] + '_' + str(dst_port[1]))
+                    if dst_port[0] not in objectNetwork_tuple['value']:
+                        objectNetwork_tuple['value'].append(dst_port[0])
                         objectNetwork_tuple['obj_name'].append(
-                            objPref + dst_obj_pref  + dest_port[0])
+                            objPref + dst_obj_pref + dst_port[0])
                         objectNetwork_tuple['description'].append("LAN host")
                         objectNetwork_tuple['type'].append('host')
 
+                        # Create DST obj if not present
+                        # for dest_port, hitcount in aggregate_dst_hit.iteritems():
+                        #   if RFC1918(dest_port[0]):
 
             object_data = pd.DataFrame(objectNetwork_tuple)
             index = 1
             for dest_port, hitcount in aggregate_dst_hit.iteritems():
 
-
-
                 if hitcount > sameIPhost:
-                    abc = 1
+                    # Check if destination is RFC1918 and not broadcast or net adress
+                    if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
+                        _dst_obj = _findObjectName(object_data, dest_port[0])
+                        _service_obj = _findServiceName(1, dest_port[0])
+                        zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
+                                                 + dest_port[
+                                                     2] + ' object-group ' + _findObjectName(object_data,
+                                                                                             zone_name + '_IP') + ' object-group ' +
+                                                 _dst_obj)
                 else:
                     grouped = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]]
+                    _service_obj = _findServiceName(1, dest_port[0])
                     for src_ip in grouped[src_col]:
-
 
                         # Create obj for every src if not exists
                         if src_ip not in objectNetwork_tuple['value']:
@@ -221,25 +254,27 @@ def zones():
                             objectNetwork_tuple['type'].append('host')
 
                         # Add src obj to group
-                        if _findObjectName(object_data, src_ip) not in objectGroup_network_tuple['members']:
+                        _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
+                        objectGroup_network = GroupObject(_tmp_src_grp_obj)
+                        #if _findObjectName(object_data, src_ip) not in objectGroup_network_tuple['members']:
                             # Create src group obj
-                            _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
-                            objectGroup_network_tuple['obj_name'].append(_tmp_src_grp_obj)
-                            objectGroup_network_tuple['members'].append( _findObjectName(object_data, src_ip))
+                         #   objectGroup_network_tuple['obj_name'].append(_tmp_src_grp_obj)
+                          #  objectGroup_network_tuple['members'].append(_findObjectName(object_data, src_ip))
 
-                        #Check if destination is RFC1918
+                        # Check if destination is RFC1918
                         if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
                             _dst_obj = _findObjectName(object_data, dest_port[0])
                             zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
                                                      + dest_port[
                                                          2] + ' object-group ' + _tmp_src_grp_obj + ' object-group ' +
-                                                     _dst_obj)
+                                                     _dst_obj + ' eq ' + str(dest_port[1]))
                 index += 1
 
     return locals()
 
-def _findObjectName(object_data,src_ip):
-    result = str(object_data.iloc[object_data.loc[object_data['value'] == src_ip].index[0]]['obj_name'])
+
+def _findObjectName(object_data, value):
+    result = str(object_data.iloc[object_data.loc[object_data['value'] == value].index[0]]['obj_name'])
     return result
 
 
