@@ -50,8 +50,7 @@ def broadcast(src_ip):
 
 
 def _findServiceName(service_data, dst_ip):
-    result = str(
-        service_data.iloc[service_data.loc[service_data['obj_name'].str.contains(dst_ip)].index[0]]['obj_name'])
+    result = service_data['object'][service_data]
     return result
 
 
@@ -72,6 +71,7 @@ def zones():
         # bunch of defauls
         sameIPhost = request.vars.maxH
         objPref = request.vars.objpref
+        objservicepref = 'SERVICE_srv_'
         separator = '-'
         zone_sep_f = '['
         zone_sep_s = ']'
@@ -101,8 +101,10 @@ def zones():
 
         # Objects for ACL
 
-        objectGroup_network_list = []
-        ObjectGroup_service_list = []
+        objectGroup_network_list = {'obj_name':[],
+                                    'object':[]}
+        objectGroup_service_list = {'obj_name':[],
+                                    'object':[]}
         objectPort_tuple = {'obj_name': [],
                             'value': []}
         objectNetwork_tuple = {'obj_name': [],
@@ -154,7 +156,7 @@ def zones():
         # delete object from memory if record already present
         del _tmp_row, _tmp_buffer
 
-        # Create objects for all VMS from segment_file
+        # Create objects for all VMs from segment_file
         for index, row in xl_dataframe.iterrows():
             if row[seg_IP_col] not in objectNetwork_tuple['value']:
                 if validate_ip(row[seg_IP_col]):
@@ -181,9 +183,8 @@ def zones():
             objectNetwork_tuple['description'].append('Zone ' + zone_name + ' subnet')
             objectNetwork_tuple['value'].append(zone_name + '_IP')
 
-            # Make objects dataframe
-            object_data = pd.DataFrame(objectNetwork_tuple)
 
+            ######################### SORTING DATA FOR CURRENT ZONE ################################
             zone_ips = xl_dataframe.loc[xl_dataframe['Zone_name'] == 'Main', seg_IP_col].tolist()
             # remove unicode and cast to STR
             zone_name = str(zone_name)
@@ -202,16 +203,24 @@ def zones():
                 src_col].nunique()
             service_dst_grp = dest_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].unique()
             port_data = pd.DataFrame(objectPort_tuple)
+            ######################### END OF SORTING ################################
 
-            # Create SERVICE dst group
+            # Create dst SERVICE group
             for dst_port, garbage in service_dst_grp.iteritems():
                 _tmp_port_grp_obj = objPref + 'SERVICE_srv_' + dst_port[0]
-                objectGroup_service = GroupObject(_tmp_port_grp_obj)
 
                 if RFC1918(dst_port[0]) and not broadcast(dst_port[0]):
-                    if objedst_port[2] + '_' + str(dst_port[1]):
-                        objectGroup_service_tuple['obj_name'].append(_tmp_port_grp_obj)
-                        objectGroup_service_tuple['members'].append(dst_port[2] + '_' + str(dst_port[1]))
+                    # Create SERVICE object for DST if not exist
+                    if _tmp_port_grp_obj not in objectGroup_service_list['obj_name']:
+                        _service_obj = GroupObject(_tmp_port_grp_obj)
+                        objectGroup_service_list['obj_name'].append(_tmp_port_grp_obj)
+                        objectGroup_service_list['object'].append(_service_obj)
+
+                    # Check if current port already member of current object else ADD MEMBER
+                    # TUPLE [FIRST NAME] [ GET INDEX OF ELEMNT]. CALL MEMBER FUNC
+                    if not objectGroup_service_list['object'][objectGroup_service_list['obj_name'].index(_tmp_port_grp_obj)].ismember(dst_port[2] + '_' + str(dst_port[1])):
+                        objectGroup_service_list['object'][
+                            objectGroup_service_list['obj_name'].index(_tmp_port_grp_obj)].addmember(dst_port[2] + '_' + str(dst_port[1]))
                     if dst_port[0] not in objectNetwork_tuple['value']:
                         objectNetwork_tuple['value'].append(dst_port[0])
                         objectNetwork_tuple['obj_name'].append(
@@ -219,10 +228,8 @@ def zones():
                         objectNetwork_tuple['description'].append("LAN host")
                         objectNetwork_tuple['type'].append('host')
 
-                        # Create DST obj if not present
-                        # for dest_port, hitcount in aggregate_dst_hit.iteritems():
-                        #   if RFC1918(dest_port[0]):
 
+            # Make objects dataframe
             object_data = pd.DataFrame(objectNetwork_tuple)
             index = 1
             for dest_port, hitcount in aggregate_dst_hit.iteritems():
@@ -239,8 +246,16 @@ def zones():
                                                  _dst_obj)
                 else:
                     grouped = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]]
-                    _service_obj = _findServiceName(1, dest_port[0])
-                    for src_ip in grouped[src_col]:
+                    _service_obj = objectGroup_service_list['object'][objectGroup_service_list['obj_name'].index(objPref + objservicepref + dest_port[0])]
+
+                    # Create SERVICE object for DST if not exist
+                    _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
+                    if _tmp_src_grp_obj not in objectGroup_network_list['obj_name']:
+                        _network_obj = GroupObject(_tmp_src_grp_obj)
+                        objectGroup_network_list['obj_name'].append(_tmp_src_grp_obj)
+                        objectGroup_network_list['object'].append(_network_obj)
+
+                for src_ip in grouped[src_col]:
 
                         # Create obj for every src if not exists
                         if src_ip not in objectNetwork_tuple['value']:
@@ -254,20 +269,20 @@ def zones():
                             objectNetwork_tuple['type'].append('host')
 
                         # Add src obj to group
-                        _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
-                        objectGroup_network = GroupObject(_tmp_src_grp_obj)
-                        #if _findObjectName(object_data, src_ip) not in objectGroup_network_tuple['members']:
-                            # Create src group obj
-                         #   objectGroup_network_tuple['obj_name'].append(_tmp_src_grp_obj)
-                          #  objectGroup_network_tuple['members'].append(_findObjectName(object_data, src_ip))
-
-                        # Check if destination is RFC1918
-                        if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
-                            _dst_obj = _findObjectName(object_data, dest_port[0])
-                            zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit '
-                                                     + dest_port[
-                                                         2] + ' object-group ' + _tmp_src_grp_obj + ' object-group ' +
-                                                     _dst_obj + ' eq ' + str(dest_port[1]))
+                        # Check if current port already member of current object else ADD MEMBER
+                        # TUPLE [FIRST NAME] [ GET INDEX OF ELEMNT]. CALL MEMBER FUNC
+                        _tmp_src_obj_name = _findObjectName(object_data, src_ip)
+                        if not objectGroup_network_list['object'][
+                            objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].ismember(
+                                                _tmp_src_obj_name):
+                            objectGroup_network_list['object'][
+                                objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].addmember(_tmp_src_obj_name)
+                # Check if destination is RFC1918
+                if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
+                    _dst_obj = _findObjectName(object_data, dest_port[0])
+                    zone_rules_writer.append('access-list ' + zone_name.capitalize() + '_in extended permit object-group '
+                                             + _tmp_src_grp_obj + ' object-group ' + _tmp_src_grp_obj + ' object-group ' +
+                                             _dst_obj)
                 index += 1
 
     return locals()
