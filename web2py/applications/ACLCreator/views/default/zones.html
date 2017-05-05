@@ -62,19 +62,26 @@
             </div>
 
         <script>
-            jQuery("#set_settings").click(function(){
+            $("#set_settings").click(function(){
                 let objects = document.getElementsByClassName('settings');
-                let settings = [];
+                ses_sett_value = [];
+                ses_sett_name = [];
                 for (i = 0; i < objects.length; i++) {
-                settings.push(objects[i])
+                    ses_sett_name.push(objects[i].id);
+                    if (objects[i].value === '') {
+                        ses_sett_value.push(objects[i].placeholder);
+                    }
+                    else {
+                        ses_sett_value.push(objects[i].value)
+                    }
+
                 }
+
                 $.ajax({
                     type: "POST",
-                    data: {settings:settings},
-                    url: "{{=URL('default', 'set_session_settings')}}",
-                    success: function(msg){
-                        $('.answer').html(msg);
-                        }
+                    data: {ses_sett_value:ses_sett_value,
+                    ses_sett_name:ses_sett_name},
+                    url: "{{=URL('default', 'set_session_settings')}}"
                 });
             });
 

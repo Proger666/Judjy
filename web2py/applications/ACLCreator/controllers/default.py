@@ -14,13 +14,18 @@ import io
 from os import path
 import xlsxwriter
 
-# TODO: GOD DA UGLY!!! erase me
-src_col = 'source.ip: Descending'
-dst_col = 'dest.ip: Descending'
-dstport_col = 'dest.port: Descending'
-transport_col = 'transport: Descending'
-seg_VM_col = 'VM'
-seg_IP_col = 'Ip addres'
+# TODO: GOD DAT UGLY!!! erase me
+set_name = ['separator','zone_sep_s','zone_sep_f','zoneSubnetPref','dst_obj_pref','serviceObjPref','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+session.set_name = set_name
+if not session.set_value:
+    set_value = ['-','[',']','','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
+    session.set_value = set_value
+src_col = session.set_value[session.set_name.index('Source IP column')]
+dst_col = session.set_value[session.set_name.index('Destination IP column')]
+dstport_col = session.set_value[session.set_name.index('Destination PORT column')]
+transport_col = session.set_value[session.set_name.index('PROTOCOL column')]
+seg_VM_col = session.set_value[session.set_name.index('VM name column')]
+seg_IP_col = session.set_value[session.set_name.index('IP ADDRESS column')]
 
 
 def user(): return dict(form=auth())
@@ -103,27 +108,24 @@ def createConfig(zones_rules, object_data, objectGroup_network_list, objectGroup
     result = '\n!\n'.join(result)
     return result
 
-def set_session_settings(name):
-    varValue = request.vars[name + '[]']
-    if type(varValue) == str:
-        return [varValue]  # check for single value
-    else:
-        return varValue
+def set_session_settings():
+    session.set_value = request.vars.set_value
+    varValue = request.vars['' + '[]']
+
 
 def zones():
     rows = db(db.t_data.f_name.like('%DBSG%')).select()
-    set_name =['separator','zone_sep_s','zone_sep_f','zoneSubnetPref','dst_obj_pref','serviceObjPref','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
-    set_value = ['-','[',']','','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
+    set_value = session.set_value
     if request.vars.segment_file is not None and len(request.vars) is not 0:
         # bunch of defauls
         sameIPhost = request.vars.maxH
         objPref = request.vars.objpref
-        separator = '-'
-        zone_sep_f = '['
-        zone_sep_s = ']'
-        zoneSubnetPref = ''
-        dst_obj_pref = 'obj-'
-        serviceObjPref = 'DM_INLINE_SERVICE_'  # 'SERVICE_srv_'
+        separator = session.separator
+        zone_sep_f = session.zone_sep_f
+        zone_sep_s = session.zone_sep_s
+        zoneSubnetPref = session.zoneSubnetPref
+        dst_obj_pref = session.dst_obj_pref
+        serviceObjPref = session.serviceObjPref  # 'SERVICE_srv_'
 
         # extract max ports that was saved in DB with data file
         maxPorts = db(db.t_data.f_name.like(request.vars.filename)).select(db.t_data.f_ports).first().f_ports
