@@ -15,10 +15,10 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
 if not session.set_value:
-    set_value = ['-','[',']','0','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
+    set_value = ['Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment','-','[',']','0','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
     session.set_value = set_value
 src_col = session.set_value[session.set_name.index('Source IP column')]
 dst_col = session.set_value[session.set_name.index('Destination IP column')]
@@ -32,6 +32,7 @@ zone_sep_f = session.set_value[session.set_name.index('First Zone Sep.')]
 zone_sep_s = session.set_value[session.set_name.index('Closing Zone Sep.')]
 zonesubnetpref = session.set_value[session.set_name.index('Zone subnet empty pref')]
 dst_obj_pref = session.set_value[session.set_name.index('Destination obj prefix')]
+sheet_to_procc = session.set_value[session.set_name.index('Sheets to analyze')]
 serviceObjPref = session.set_value[session.set_name.index('Prefix for Service obj')]  # 'SERVICE_srv_'
 
 def user(): return dict(form=auth())
@@ -230,6 +231,7 @@ def zones():
                     'service ' + row[transport_col] + ' destination eq ' + str(row[dstport_col]))
             index_service = 1
             for zone_name in xl.book.sheet_names():
+               if zone_name in sheet_to_procc:
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
