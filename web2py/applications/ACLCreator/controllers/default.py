@@ -15,10 +15,10 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['Maximum port value','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
-if not session.set_value:
-    set_value = ['Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment','-','[',']','0','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
+if not session.set_value or len(session.set_value) != len(set_name):
+    set_value = ['10000','Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment','-','[',']','0','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
     session.set_value = set_value
 src_col = session.set_value[session.set_name.index('Source IP column')]
 dst_col = session.set_value[session.set_name.index('Destination IP column')]
@@ -34,6 +34,8 @@ zonesubnetpref = session.set_value[session.set_name.index('Zone subnet empty pre
 dst_obj_pref = session.set_value[session.set_name.index('Destination obj prefix')]
 sheet_to_procc = session.set_value[session.set_name.index('Sheets to analyze')]
 serviceObjPref = session.set_value[session.set_name.index('Prefix for Service obj')]  # 'SERVICE_srv_'
+maxports = int(session.set_value[session.set_name.index('Maximum port value')])  # 'SERVICE_srv_'
+
 
 def user(): return dict(form=auth())
 
@@ -128,7 +130,7 @@ def zones():
         sameIPhost = request.vars.maxH
         objPref = request.vars.objpref
         # extract max ports that was saved in DB with data file
-        maxPorts = db(db.t_data.f_name.like(request.vars.filename)).select(db.t_data.f_ports).first().f_ports
+        maxPorts = maxports
         if hasattr(request.vars.segment_file, 'file'):
             f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename + 'DBSG'
             db.t_data.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
@@ -222,16 +224,12 @@ def zones():
                         re.sub('[ ,]', '_', row[seg_VM_col]) + ' from ' + row['Zone_name'])
                     objectNetwork_tuple['type'].append('host')
 
-            # Create objects for all uniq ports/transport
-            # Get all uniq pors via drop_duplicates and filter by maxPorts setting
-            uniq_ports = data.loc[data[dstport_col] < maxPorts, [transport_col, dstport_col]].drop_duplicates()
-            for index, row in uniq_ports.iterrows():
-                objectPort_tuple['obj_name'].append(row[transport_col] + '_' + str(row[dstport_col]))
-                objectPort_tuple['value'].append(
-                    'service ' + row[transport_col] + ' destination eq ' + str(row[dstport_col]))
+
+            ##########################BEGIN ZONE PROCESSING #######################
             index_service = 1
             for zone_name in xl.book.sheet_names():
                if zone_name in sheet_to_procc:
+
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
@@ -241,6 +239,13 @@ def zones():
                     zonesubnetprefs = zonesubnetpref
                 # remove unicode and cast to STR
                 zone_name = str(zone_name)
+                # Create objects for all uniq ports/transport
+                # Get all uniq pors via drop_duplicates and filter by maxPorts setting
+                uniq_ports = data.loc[(data[dstport_col] < maxPorts and data['src_zone_name'] == zone_name), [transport_col, dstport_col]].drop_duplicates()
+                for index, row in uniq_ports.iterrows():
+                    objectPort_tuple['obj_name'].append(row[transport_col] + '_' + str(row[dstport_col]))
+                    objectPort_tuple['value'].append(
+                        'service ' + row[transport_col] + ' destination eq ' + str(row[dstport_col]))
                 objectNetwork_tuple['obj_name'].append('zone_' + zone_sep_f + zone_name + zone_sep_s + '_NET')
                 objectNetwork_tuple['type'].append('subnet')
                 objectNetwork_tuple['description'].append('Zone ' + zone_name + ' subnet')
@@ -255,14 +260,12 @@ def zones():
                     (data[src_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
                         data['dst_zone_name'] != zone_name))]
 
-                source_tree['src_zone_name'] = zone_name
                 # Group by DEST IP - tree to DEST ip address so dest ip - list of all who interacte with it
-                dest_tree = source_tree.groupby(
-                    [dst_col, dstport_col, src_col, transport_col, 'src_zone_name', 'dst_zone_name'],
-                    as_index=False).mean()
+                #dest_tree = source_tree.groupby(
+                 #   [dst_col, dstport_col, src_col, transport_col, 'src_zone_name', 'dst_zone_name'], as_index=False).mean()
                 # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
-                aggregate_dst_hit = dest_tree.groupby([dst_col])[src_col].nunique()
-                service_dst_grp = dest_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].unique()
+                aggregate_dst_hit = source_tree.groupby([dst_col])[src_col].nunique()
+                service_dst_grp = source_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].unique()
                 port_data = pd.DataFrame(objectPort_tuple)
                 ######################### END OF SORTING ################################
 
@@ -317,7 +320,7 @@ def zones():
                                 + _service_obj.name + ' object-group ' + _findObjectName(object_data,
                                                                                          zonesubnetprefs) + ' object-group ' + _dst_obj)
                         else:
-                            grouped = dest_tree.loc[dest_tree[dst_col] == dest_port, [src_col]]
+                            grouped = source_tree.loc[source_tree[dst_col] == dest_port, [src_col]]
 
                             # Create SERVICE object for SRC if not exist
                             _tmp_src_grp_obj = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + 'srv_' + str(index)
