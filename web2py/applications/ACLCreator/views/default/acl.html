@@ -12,24 +12,10 @@
             }
         </style>
         <div class="center text-danger text">
-        <h2>ACL for Zones</h2>
+        <h2>Config</h2>
         </div>
-
-        <table class="table table-responsive table-hover">
-                 <thead>
-                 <tr>
-                     <td class="Chead">row.number</td>
-                     <td class="Chead">row.source</td>
-                     <td class="Chead">row.desination</td>
-                     <td class="Chead">row.service</td>
-                     <td class="Chead">row.action</td>
-                 </tr>
-                 </thead>
-                 <tbody>
-                 <tr>
-                 <tr><td colspan="5" class="Zhead">Zone name</td></tr>
-                 <tr>
-                     <td>asd</td>
-                 </tr>
-                 </tbody>
-        </table>
+        <p>
+      <textarea class="form-control" placeholder="config goes here"    style=" height: 400px;">
+          {{=config.f_str_data}}
+      </textarea>
+        </p>

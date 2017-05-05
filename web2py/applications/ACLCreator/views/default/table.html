@@ -1,13 +1,34 @@
 {{extend 'layout.html'}}
  <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js" > </script>
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+            <link rel="stylesheet" href="https://cdn.datatables.net/1.10.15/css/dataTables.bootstrap.min.css"/>
 
-        <a href="{{=URL('default', 'zones', vars={'filename':request.vars.filename})}}">Create ACLs</a>
+        <style>
+        .btn-round{
+        border-radius: 17px;
+        }
+        </style>
+
+    <button class="btn btn-primary btn-round center-block" value="submit" onclick="document.location.href='{{=URL('default', 'zones', vars={'filename':request.vars.filename})}}'"> Create ACLs </button>
         <div class="table-responsive">
  <table id='data' class="table table-hover center-block">
      <thead>
      <tr>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
+         <th>Source IP</th>
          <th>Source IP</th>
      </tr>
      </thead>
@@ -34,6 +55,6 @@
 
         <script>
             $(document).ready(function() {
-    $('#data').DataTable();
-} );
+                $('#data').DataTable();
+            });
         </script>

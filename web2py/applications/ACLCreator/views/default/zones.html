@@ -19,17 +19,65 @@
                  </tbody>
              </table>
                </div>
+            <div class="col-md-7">
             <label>Max host to same ip
             <input type="text" value="5" name="maxH" class="input-data"></label>
             <label>Obj prefix
             <input type="text" value="auto_" name="objpref" class="input-data"></label>
-
+            </div>
 
                       <input type="submit" />
                       <input type="hidden" name="_formname" value="test" />
         </form>
+        <div class="col-md-7">
+        <table class="table hover">
+            <thead>
+            <tr>
+                <td style="font-weight: 700">
+                    Settings
+                </td>
+                <td style="font-weight: 700">
+                    Value
+                </td>
+            </tr>
+            </thead>
+            <tbody>
+            {{for name, value in zip(set_name, set_value):}}
+            <tr>
+                <td>
+                    {{=name}}
+                </td>
+                <td>
+                    <input id="{{=name}}" type="text" placeholder="{{=value}}" class="settings">
+                </td>
+            </tr>
+            {{pass}}
+            <tr>
+                <td>
+                    <button class="btn btn-round btn-primary" id="set_settings">Set settings</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+            </div>
 
         <script>
+            jQuery("#set_settings").click(function(){
+                let objects = document.getElementsByClassName('settings');
+                let settings = [];
+                for (i = 0; i < objects.length; i++) {
+                settings.push(objects[i])
+                }
+                $.ajax({
+                    type: "POST",
+                    data: {settings:settings},
+                    url: "{{=URL('default', 'set_session_settings')}}",
+                    success: function(msg){
+                        $('.answer').html(msg);
+                        }
+                });
+            });
+
            function getInputFields(obj) {
                event.preventDefault();
                window.history.pushState(null,"", obj.getAttribute("href"));

@@ -5,9 +5,12 @@
 db.define_table('t_data',
                 Field('f_name', type='string',
                       label=T('Name')),
-                Field('f_file', type='string',
-                      label=T('File')),
-                auth.signature,
+                Field('f_data', 'upload',
+                      label=T('Data')),
+                Field('f_ports', type='integer', default='15000',
+                      label=T('Ports')),
+                Field('f_str_data', type='string',
+                      label=T('data object')),
                 format='%(f_name)s',
                 migrate=settings.migrate)
 
