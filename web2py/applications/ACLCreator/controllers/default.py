@@ -15,10 +15,10 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['separator','zone_sep_s','zone_sep_f','zoneSubnetPref','dst_obj_pref','serviceObjPref','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
 if not session.set_value:
-    set_value = ['-','[',']','','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
+    set_value = ['-','[',']','0','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
     session.set_value = set_value
 src_col = session.set_value[session.set_name.index('Source IP column')]
 dst_col = session.set_value[session.set_name.index('Destination IP column')]
@@ -26,7 +26,13 @@ dstport_col = session.set_value[session.set_name.index('Destination PORT column'
 transport_col = session.set_value[session.set_name.index('PROTOCOL column')]
 seg_VM_col = session.set_value[session.set_name.index('VM name column')]
 seg_IP_col = session.set_value[session.set_name.index('IP ADDRESS column')]
-
+# bunch of defauls
+separator = session.set_value[session.set_name.index('separator')]
+zone_sep_f = session.set_value[session.set_name.index('First Zone Sep.')]
+zone_sep_s = session.set_value[session.set_name.index('Closing Zone Sep.')]
+zonesubnetpref = session.set_value[session.set_name.index('Zone subnet empty pref')]
+dst_obj_pref = session.set_value[session.set_name.index('Destination obj prefix')]
+serviceObjPref = session.set_value[session.set_name.index('Prefix for Service obj')]  # 'SERVICE_srv_'
 
 def user(): return dict(form=auth())
 
@@ -109,24 +115,17 @@ def createConfig(zones_rules, object_data, objectGroup_network_list, objectGroup
     return result
 
 def set_session_settings():
-    session.set_value = request.vars.set_value
+    session.set_value = request.vars['set_value' + '[]']
     varValue = request.vars['' + '[]']
 
 
 def zones():
     rows = db(db.t_data.f_name.like('%DBSG%')).select()
     set_value = session.set_value
+    set_name = session.set_name
     if request.vars.segment_file is not None and len(request.vars) is not 0:
-        # bunch of defauls
         sameIPhost = request.vars.maxH
         objPref = request.vars.objpref
-        separator = session.separator
-        zone_sep_f = session.zone_sep_f
-        zone_sep_s = session.zone_sep_s
-        zoneSubnetPref = session.zoneSubnetPref
-        dst_obj_pref = session.dst_obj_pref
-        serviceObjPref = session.serviceObjPref  # 'SERVICE_srv_'
-
         # extract max ports that was saved in DB with data file
         maxPorts = db(db.t_data.f_name.like(request.vars.filename)).select(db.t_data.f_ports).first().f_ports
         if hasattr(request.vars.segment_file, 'file'):
@@ -234,17 +233,21 @@ def zones():
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
+                if zonesubnetpref == '':
+                    zonesubnetprefs = zone_name + '_IP'
+                else:
+                    zonesubnetprefs = zonesubnetpref
+                # remove unicode and cast to STR
+                zone_name = str(zone_name)
                 objectNetwork_tuple['obj_name'].append('zone_' + zone_sep_f + zone_name + zone_sep_s + '_NET')
                 objectNetwork_tuple['type'].append('subnet')
                 objectNetwork_tuple['description'].append('Zone ' + zone_name + ' subnet')
-                objectNetwork_tuple['value'].append(zoneSubnetPref)
+                objectNetwork_tuple['value'].append(zonesubnetprefs)
 
                 ######################### SORTING DATA FOR CURRENT ZONE ################################
                 zone_ips = xl_dataframe.loc[xl_dataframe['Zone_name'] == 'Main', seg_IP_col].tolist()
-                # remove unicode and cast to STR
-                zone_name = str(zone_name)
-                if zoneSubnetPref == '':
-                    zoneSubnetPref = zone_name + '_IP'
+
+
                 # filter by label source.ip and find all ip that is belongs to zone inside source DATA and dst not the same zone
                 source_tree = data[
                     (data[src_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
@@ -310,7 +313,7 @@ def zones():
                                 'access-list ' + re.sub(' ', '_',
                                                         zone_name.capitalize()) + '_in extended permit object-group '
                                 + _service_obj.name + ' object-group ' + _findObjectName(object_data,
-                                                                                         zoneSubnetPref) + ' object-group ' + _dst_obj)
+                                                                                         zonesubnetprefs) + ' object-group ' + _dst_obj)
                         else:
                             grouped = dest_tree.loc[dest_tree[dst_col] == dest_port, [src_col]]
 

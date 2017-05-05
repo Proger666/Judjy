@@ -64,23 +64,23 @@
         <script>
             $("#set_settings").click(function(){
                 let objects = document.getElementsByClassName('settings');
-                ses_sett_value = [];
-                ses_sett_name = [];
+                set_value = [];
+                set_name = [];
                 for (i = 0; i < objects.length; i++) {
-                    ses_sett_name.push(objects[i].id);
+                    set_name.push(objects[i].id);
                     if (objects[i].value === '') {
-                        ses_sett_value.push(objects[i].placeholder);
+                        set_value.push(objects[i].placeholder);
                     }
                     else {
-                        ses_sett_value.push(objects[i].value)
+                        set_value.push(objects[i].value)
                     }
 
                 }
 
                 $.ajax({
                     type: "POST",
-                    data: {ses_sett_value:ses_sett_value,
-                    ses_sett_name:ses_sett_name},
+                    data: {set_value:set_value,
+                    set_name:set_name},
                     url: "{{=URL('default', 'set_session_settings')}}"
                 });
             });
