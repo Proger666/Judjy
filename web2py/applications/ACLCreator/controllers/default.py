@@ -142,7 +142,7 @@ def zones():
         # remove unicode and cast to STR
         sheet_names = [str(x) for x in xl.sheet_names]
         sheets = xl.book.sheets()
-        data = pd.read_csv(
+        initial_data = pd.read_csv(
             db.t_data.f_data.retrieve(db(db.t_data.f_name.like(request.vars.filename)).select().first().f_data)[1])
 
         # Objects for ACL
@@ -173,7 +173,7 @@ def zones():
         _tmp_row = db.t_cache(f_name='processed_' + request.vars.filename)
         if not _tmp_row:
             # REMOVE BIG PORST from data
-            data = data.loc[data[dstport_col] < maxPorts]
+            data = initial_data[initial_data[dstport_col] < maxPorts]
             # Tag everything with src zone and dst zone
             for index, row in data.iterrows():
                 try:
@@ -209,27 +209,26 @@ def zones():
         _tmp_row = db.t_cache(f_name='config' + request.vars.filename + '_' + f_id)
         if not _tmp_row:
 
-            # Create objects for all VMs from segment_file
-            for index, row in xl_dataframe.iterrows():
-                if row[seg_IP_col] not in objectNetwork_tuple['value']:
-                    if validate_ip(row[seg_IP_col]):
-                        objectNetwork_tuple['value'].append(row[seg_IP_col])
-                    else:
-                        objectNetwork_tuple['value'].append('NOT ASSIGNED')
-
-                    zone_name = re.sub('[ ,]', '_', row['Zone_name'])
-                    objectNetwork_tuple['obj_name'].append(
-                        objPref + zone_sep_f + zone_name + zone_sep_s + '_' + re.sub('[ ,]', '_', row[seg_VM_col]))
-                    objectNetwork_tuple['description'].append(
-                        re.sub('[ ,]', '_', row[seg_VM_col]) + ' from ' + row['Zone_name'])
-                    objectNetwork_tuple['type'].append('host')
-
-
+            # remove Ports from Settings
+            data = data.loc[data[dstport_col] < maxPorts]
             ##########################BEGIN ZONE PROCESSING #######################
             index_service = 1
             for zone_name in xl.book.sheet_names():
                if zone_name in sheet_to_procc:
-
+                # Create objects for all VMs from segment_file
+                for index, row in xl_dataframe.loc[xl_dataframe['Zone_name'] == zone_name].iterrows():
+                    if row[seg_IP_col] not in objectNetwork_tuple['value']:
+                        if validate_ip(row[seg_IP_col]):
+                            objectNetwork_tuple['value'].append(row[seg_IP_col])
+                        else:
+                            objectNetwork_tuple['value'].append('NOT ASSIGNED')
+                        zone_name = re.sub('[ ,]', '_', row['Zone_name'])
+                        objectNetwork_tuple['obj_name'].append(
+                            objPref + zone_sep_f + zone_name + zone_sep_s + '_' + re.sub('[ ,]', '_',
+                                                                                         row[seg_VM_col]))
+                        objectNetwork_tuple['description'].append(
+                            re.sub('[ ,]', '_', row[seg_VM_col]) + ' from ' + row['Zone_name'])
+                        objectNetwork_tuple['type'].append('host')
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
@@ -241,7 +240,7 @@ def zones():
                 zone_name = str(zone_name)
                 # Create objects for all uniq ports/transport
                 # Get all uniq pors via drop_duplicates and filter by maxPorts setting
-                uniq_ports = data.loc[(data[dstport_col] < maxPorts and data['src_zone_name'] == zone_name), [transport_col, dstport_col]].drop_duplicates()
+                uniq_ports = data.loc[data['src_zone_name'] == zone_name, [transport_col, dstport_col]].drop_duplicates()
                 for index, row in uniq_ports.iterrows():
                     objectPort_tuple['obj_name'].append(row[transport_col] + '_' + str(row[dstport_col]))
                     objectPort_tuple['value'].append(
@@ -250,6 +249,8 @@ def zones():
                 objectNetwork_tuple['type'].append('subnet')
                 objectNetwork_tuple['description'].append('Zone ' + zone_name + ' subnet')
                 objectNetwork_tuple['value'].append(zonesubnetprefs)
+
+
 
                 ######################### SORTING DATA FOR CURRENT ZONE ################################
                 zone_ips = xl_dataframe.loc[xl_dataframe['Zone_name'] == 'Main', seg_IP_col].tolist()
@@ -286,6 +287,7 @@ def zones():
                         else:
                             _tmp_port_grp_obj = serviceObjPref + str(index_service - 1)
 
+
                         # Check if current port already member of current object else ADD MEMBER
                         # TUPLE [FIRST NAME] [ GET INDEX OF ELEMNT]. CALL MEMBER FUNC
                         if not objectGroup_service_list['object'][
@@ -294,6 +296,17 @@ def zones():
                             objectGroup_service_list['object'][
                                 objectGroup_service_list['obj_name'].index(_tmp_port_grp_obj)].addmember(
                                 dst_port[2] + '_' + str(dst_port[1]))
+                        # Create DST obj for every dst in zone
+                        if dst_port[0] not in objectNetwork_tuple['value']:
+                            if validate_ip(dst_port[0]):
+                                objectNetwork_tuple['value'].append(dst_port[0])
+                            else:
+                                objectNetwork_tuple['value'].append('NOT ASSIGNED')
+
+                            objectNetwork_tuple['obj_name'].append(
+                                objPref + zone_sep_f + zone_name + zone_sep_s + '_' + dst_port[0])
+                            objectNetwork_tuple['description'].append("")
+                            objectNetwork_tuple['type'].append('host')
                         if dst_port[0] not in objectNetwork_tuple['value']:
                             objectNetwork_tuple['value'].append(dst_port[0])
                             objectNetwork_tuple['obj_name'].append(
