@@ -186,11 +186,12 @@ def zones():
                 except IndexError:
                     data.ix[index, 'src_zone_name'] = 'UNKNOWN'
                 else:
+
                     data.ix[index, 'src_zone_name'] = src_z_name
                 try:
                     # find Zone name  for DST based on IP
                     dst_z_name = str(
-                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].values[0][2])
+                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].values[0][2])
                 except IndexError:
                     data.ix[index, 'dst_zone_name'] = 'UNKNOWN'
                 else:
@@ -198,6 +199,7 @@ def zones():
 
             # Add processed file to cache
             db.t_cache.insert(f_name='processed_' + request.vars.filename, f_str_data=data.to_csv(index=False))
+            db.commit()
         else:
             # Create buffer to feed it to pandas
             _tmp_buffer = StringIO.StringIO()
@@ -306,16 +308,15 @@ def zones():
                             else:
                                 objectNetwork_tuple['value'].append('NOT ASSIGNED')
 
-                            objectNetwork_tuple['obj_name'].append(
-                                objPref + zone_sep_f + zone_name + zone_sep_s + '_' + dst_port[0])
-                            objectNetwork_tuple['description'].append("")
-                            objectNetwork_tuple['type'].append('host')
-                        if dst_port[0] not in objectNetwork_tuple['value']:
-                            objectNetwork_tuple['value'].append(dst_port[0])
-                            objectNetwork_tuple['obj_name'].append(
-                                objPref + dst_obj_pref + dst_port[0])
+                            _obj_name = data.loc[data[dst_col] == dst_port[0], ['dst_zone_name']].drop_duplicates()
+                            if _obj_name.iloc[0]['dst_zone_name'] != 'UNKNOWN':
+                                objectNetwork_tuple['obj_name'].append(objPref + zone_sep_f + zone_name + zone_sep_s + '_' + dst_port[0])
+                            else:
+                                objectNetwork_tuple['obj_name'].append(
+                                    objPref + dst_obj_pref + dst_port[0])
                             objectNetwork_tuple['description'].append("LAN host")
                             objectNetwork_tuple['type'].append('host')
+
 
                 # Make objects dataframe
                 object_data = pd.DataFrame(objectNetwork_tuple)
@@ -347,21 +348,14 @@ def zones():
 
                             for src_ip in grouped[src_col]:
 
-                                # Create obj for every src if not exists
-                                if src_ip not in objectNetwork_tuple['value']:
-                                    if validate_ip(src_ip):
-                                        objectNetwork_tuple['value'].append(src_ip)
-                                    else:
-                                        objectNetwork_tuple['value'].append('NOT ASSIGNED')
-                                    objectNetwork_tuple['obj_name'].append(
-                                        objPref + zone_sep_f + zone_name + zone_sep_s + '_' + src_ip)
-                                    objectNetwork_tuple['description'].append("")
-                                    objectNetwork_tuple['type'].append('host')
-
                                 # Add src obj to group
                                 # Check if current port already member of current object else ADD MEMBER
                                 # TUPLE [FIRST NAME] [ GET INDEX OF ELEMNT]. CALL MEMBER FUNC
+                               try:
                                 _tmp_src_obj_name = _findObjectName(object_data, src_ip)
+                               except IndexError:
+                                   print src_ip
+                               else:
                                 if not objectGroup_network_list['object'][
                                     objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].ismember(
                                     _tmp_src_obj_name):
