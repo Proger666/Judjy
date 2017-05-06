@@ -309,12 +309,14 @@ def zones():
                                 objectNetwork_tuple['value'].append('NOT ASSIGNED')
 
                             _obj_name = data.loc[data[dst_col] == dst_port[0], ['dst_zone_name']].drop_duplicates()
-                            if _obj_name.iloc[0]['dst_zone_name'] != 'UNKNOWN':
-                                objectNetwork_tuple['obj_name'].append(objPref + zone_sep_f + zone_name + zone_sep_s + '_' + dst_port[0])
+                            _dst_zone_name = _obj_name.iloc[0]['dst_zone_name']
+                            if _dst_zone_name != 'UNKNOWN':
+                                objectNetwork_tuple['obj_name'].append(objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + dst_port[0])
+                                objectNetwork_tuple['description'].append('from ' + _dst_zone_name)
                             else:
                                 objectNetwork_tuple['obj_name'].append(
                                     objPref + dst_obj_pref + dst_port[0])
-                            objectNetwork_tuple['description'].append("LAN host")
+                                objectNetwork_tuple['description'].append("LAN host")
                             objectNetwork_tuple['type'].append('host')
 
 
