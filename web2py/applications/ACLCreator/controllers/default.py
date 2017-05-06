@@ -178,10 +178,9 @@ def zones():
                 df_tmp['Zone_name'] = sheet.name
                 _grouped = df_tmp[seg_IP_col]
                 for dst in _grouped.iteritems():
-                    xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst]
-                    if not xl_dataframe.empty:
-
-                        print ('Error')
+                    _tmp = xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst[1]]
+                    if not _tmp.empty:
+                        df_tmp.set_value(df_tmp[seg_IP_col] == dst[1], 'Zone_name', 'UNKNOWN')
                 xl_dataframe = xl_dataframe.append(df_tmp)
             except KeyError:
                 None # do nothing cuz incorrect sheet
