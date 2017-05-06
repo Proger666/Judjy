@@ -42,13 +42,13 @@
             </tr>
             </thead>
             <tbody>
-            {{for name, value in zip(set_name, set_value):}}
+            {{for name, value, default in zip(set_name, set_value, default_set_value):}}
             <tr>
                 <td>
                     {{=name}}
                 </td>
                 <td>
-                    <input id="{{=name}}" type="text" placeholder="{{=value}}" class="settings" value="{{=value}}">
+                    <input id="{{=name}}" type="text" placeholder="{{=default}}" class="settings" value="{{=value}}"><b>default:</b> {{=default}}
                 </td>
             </tr>
             {{pass}}

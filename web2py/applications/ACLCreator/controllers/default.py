@@ -17,9 +17,11 @@ import xlsxwriter
 # TODO: GOD DAT UGLY!!! erase me
 set_name = ['Maximum port value','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
+set_value_def = ['10000', 'Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment', '-', '[', ']',
+             '0', 'obj-', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
+             'transport: Descending', 'VM', 'Ip addres']
 if not session.set_value or len(session.set_value) != len(set_name):
-    set_value = ['10000','Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment','-','[',']','0','obj-','DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending', 'transport: Descending', 'VM', 'Ip addres']
-    session.set_value = set_value
+    session.set_value = set_value_def
 src_col = session.set_value[session.set_name.index('Source IP column')]
 dst_col = session.set_value[session.set_name.index('Destination IP column')]
 dstport_col = session.set_value[session.set_name.index('Destination PORT column')]
@@ -124,6 +126,7 @@ def set_session_settings():
 
 def zones():
     rows = db(db.t_data.f_name.like('%DBSG%')).select()
+    default_set_value = set_value_def
     set_value = session.set_value
     set_name = session.set_name
     if request.vars.segment_file is not None and len(request.vars) is not 0:
@@ -177,17 +180,17 @@ def zones():
             # Tag everything with src zone and dst zone
             for index, row in data.iterrows():
                 try:
+                    # find Zone name  for SRC based on IP
                     src_z_name = str(
-                        xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].index[0]][
-                            'Zone_name'])
+                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].values[0][2])
                 except IndexError:
                     data.ix[index, 'src_zone_name'] = 'UNKNOWN'
                 else:
                     data.ix[index, 'src_zone_name'] = src_z_name
                 try:
+                    # find Zone name  for DST based on IP
                     dst_z_name = str(
-                        xl_dataframe.iloc[xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].index[0]][
-                            'Zone_name'])
+                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].values[0][2])
                 except IndexError:
                     data.ix[index, 'dst_zone_name'] = 'UNKNOWN'
                 else:
