@@ -140,10 +140,10 @@ def zones():
             db.commit()
         else:
             f_id = request.vars.segment_file
-        xl = pd.ExcelFile(db.t_data.f_data.retrieve(db(db.t_data.f_name.like(f_id)).select().first().f_data)[1])
+        xl  = pd.ExcelFile(db.t_data.f_data.retrieve(db(db.t_data.f_name.like(f_id)).select().first().f_data)[1])
 
         # remove unicode and cast to STR
-        sheet_names = [str(x) for x in xl.sheet_names]
+        #sheet_names = [str(x) for x in xl.sheet_names]
         sheets = xl.book.sheets()
         initial_data = pd.read_csv(
             db.t_data.f_data.retrieve(db(db.t_data.f_name.like(request.vars.filename)).select().first().f_data)[1])
@@ -167,10 +167,24 @@ def zones():
         zone_rules = StringIO.StringIO()
         xl_dataframe = pd.DataFrame(columns=[seg_VM_col, seg_IP_col, 'Zone_name'])
         for sheet in sheets:
-            df_tmp = xl.parse(sheet.name)
-            df_tmp = df_tmp[[seg_VM_col, seg_IP_col]]
-            df_tmp['Zone_name'] = sheet.name
-            xl_dataframe = xl_dataframe.append(df_tmp)
+           try:
+            sheet.name.decode('ascii')
+           except (UnicodeDecodeError, UnicodeEncodeError):
+               None # do nothing cuz incorrect sheet
+           else:
+            try:
+                df_tmp = xl.parse(sheet.name)
+                df_tmp = df_tmp[[seg_VM_col, seg_IP_col]]
+                df_tmp['Zone_name'] = sheet.name
+                _grouped = df_tmp[seg_IP_col]
+                for dst in _grouped.iteritems():
+                    xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst]
+                    if not xl_dataframe.empty:
+
+                        print ('Error')
+                xl_dataframe = xl_dataframe.append(df_tmp)
+            except KeyError:
+                None # do nothing cuz incorrect sheet
 
         # Check if file already processed
         _tmp_row = db.t_cache(f_name='processed_' + request.vars.filename)
@@ -258,7 +272,7 @@ def zones():
 
 
                 ######################### SORTING DATA FOR CURRENT ZONE ################################
-                zone_ips = xl_dataframe.loc[xl_dataframe['Zone_name'] == 'Main', seg_IP_col].tolist()
+                zone_ips = xl_dataframe.loc[xl_dataframe['Zone_name'] == zone_name, seg_IP_col].tolist()
 
 
                 # filter by label source.ip and find all ip that is belongs to zone inside source DATA and dst not the same zone
@@ -312,7 +326,7 @@ def zones():
                             _dst_zone_name = _obj_name.iloc[0]['dst_zone_name']
                             if _dst_zone_name != 'UNKNOWN':
                                 objectNetwork_tuple['obj_name'].append(objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + dst_port[0])
-                                objectNetwork_tuple['description'].append('from ' + _dst_zone_name)
+                                objectNetwork_tuple['description'].append(xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0] + 'from ' + _dst_zone_name)
                             else:
                                 objectNetwork_tuple['obj_name'].append(
                                     objPref + dst_obj_pref + dst_port[0])
