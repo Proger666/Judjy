@@ -184,6 +184,19 @@ def zones():
                 xl_dataframe = xl_dataframe.append(df_tmp)
             except KeyError:
                 None # do nothing cuz incorrect sheet
+            del df_tmp
+        df_tmp = pd.DataFrame(index=[seg_IP_col,seg_VM_col,'Zone_name'])
+
+        df_tmp[seg_IP_col,seg_VM_col,'Zone_name'] = ['1.1.1.1', '_delME_TEST1-OBJECT', str(xl_dataframe['Zone_name'].unique()[0])]
+        df_tmp[seg_IP_col,seg_VM_col,'Zone_name'] = ['2.2.2.2', '_delME_TEST2-OBJECT', str(xl_dataframe['Zone_name'].unique()[1])]
+
+        # Test DATA
+        #df_tmp[src_col,'Zone_name'] = ['1.1.1.1','2.2.2.2', 'udp', 999,'TEST2']
+
+        #df_tmp['Zone_name'] = ['2.2.2.2','1.1.1.1', 'udp', 666,'TEST1']
+        # ADD TEST DATA TO main DATA
+        xl_dataframe = xl_dataframe.append(df_tmp)
+
 
         # Check if file already processed
         _tmp_row = db.t_cache(f_name='processed_' + request.vars.filename)
@@ -366,11 +379,11 @@ def zones():
                                 # Add src obj to group
                                 # Check if current port already member of current object else ADD MEMBER
                                 # TUPLE [FIRST NAME] [ GET INDEX OF ELEMNT]. CALL MEMBER FUNC
-                               try:
+                               #try:
                                 _tmp_src_obj_name = _findObjectName(object_data, src_ip)
-                               except IndexError:
-                                   print src_ip
-                               else:
+                               #except IndexError:
+                                   #print src_ip
+                               #else:
                                 if not objectGroup_network_list['object'][
                                     objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].ismember(
                                     _tmp_src_obj_name):
