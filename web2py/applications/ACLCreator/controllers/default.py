@@ -258,6 +258,10 @@ def zones():
             {src_col: ['251.2.2.2'], dst_col: ['250.1.1.1'], transport_col: ['udp'], dstport_col: [666],
              'src_zone_name': ['TEST2'], 'dst_zone_name': ['TEST1']})
         data = data.append(_tmp_data)
+        _tmp_data = pd.DataFrame(
+            {src_col: ['172.1.1.1'], dst_col: ['251.2.2.2'], transport_col: ['udp'], dstport_col: [999],
+             'src_zone_name': ['UNKNOWN'], 'dst_zone_name': ['TEST2']})
+        data = data.append(_tmp_data)
         del _tmp_data
         ############################ END TEST SECTION ################################
 
@@ -315,6 +319,10 @@ def zones():
                 source_tree = data[
                     (data[src_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
                         data['dst_zone_name'] != zone_name))]
+
+                dest_tree = data[
+                    (data[dst_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
+                        data['src_zone_name'] == 'UNKNOWN'))]
 
                 # Group by DEST IP - tree to DEST ip address so dest ip - list of all who interacte with it
                 #dest_tree = source_tree.groupby(
@@ -424,6 +432,7 @@ def zones():
                                 _service_obj.name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                 _dst_obj)
                         index += 1
+
             config = createConfig(zone_rules_writer, object_data, objectGroup_network_list, objectGroup_service_list,
                                   port_data)
             # Remove stale file
