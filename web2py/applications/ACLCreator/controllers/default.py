@@ -381,6 +381,7 @@ def zones():
 
                 # Make objects dataframe
                 object_data = pd.DataFrame(objectNetwork_tuple)
+                # Start index for DM_INLINE
                 index = 1
                 for dest_port, hitcount in aggregate_dst_hit.iteritems():
 
