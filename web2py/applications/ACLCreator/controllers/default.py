@@ -342,7 +342,7 @@ def zones():
                             if _tmp_port_grp_obj not in objectGroup_service_list['obj_name']:
                                 _service_obj = GroupObject(_tmp_port_grp_obj)
                                 objectGroup_service_list['obj_name'].append(_tmp_port_grp_obj)
-                                objectGroup_service_list['dst'].append(dst_port[0])
+                                objectGroup_service_list['dst'].append(dst_port[0]+zone_name)
                                 objectGroup_service_list['object'].append(_service_obj)
                                 last_dst = dst_port[0]
                                 index_service += 1
@@ -388,11 +388,9 @@ def zones():
                     # Check if destination is RFC1918 and not broadcast or net adress
                     if RFC1918(dest_port) and not broadcast(dest_port):
                         _service_obj = objectGroup_service_list['object'][
-                            objectGroup_service_list['dst'].index(dest_port)]
+                            objectGroup_service_list['dst'].index(dest_port+zone_name)]
                         if hitcount >= int(sameIPhost):
                             _dst_obj = _findObjectName(object_data, dest_port)
-                            _service_obj = objectGroup_service_list['object'][
-                                objectGroup_service_list['dst'].index(dest_port)]
                             zone_rules_writer.append(
                                 'access-list ' + re.sub(' ', '_',
                                                         zone_name.capitalize()) + '_in extended permit object-group '
