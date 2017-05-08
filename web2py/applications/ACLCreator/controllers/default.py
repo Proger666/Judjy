@@ -121,7 +121,8 @@ def createConfig(zones_rules, object_data, objectGroup_network_list, objectGroup
 
 def set_session_settings():
     session.set_value = request.vars['set_value' + '[]']
-    varValue = request.vars['' + '[]']
+    response.flash = 'Settings set'
+
 
 
 def zones():
@@ -450,9 +451,9 @@ def graph():
     csv_file = db(db.t_data.f_name.like(request.vars.filename)).select().first()
     data = pd.read_csv(
         db.t_data.f_data.retrieve(db(db.t_data.f_name.like(request.vars.filename)).select().first().f_data)[1])
-    data = data.loc[(data['source.ip: Descending'] == request.vars.ip)
-                    & (data['dest.port: Descending'] <= int(request.vars.ports)),
-                    ['dest.ip: Descending', 'dest.port: Descending']]
+    data = data.loc[(data[src_col] == request.vars.ip)
+                    & (data[dst_col] <= int(request.vars.ports)),
+                    [dst_col, dstport_col]]
     with open(path.relpath('applications/ACLCreator/static/output.csv'), 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',')
         spamwriter.writerow(['id'] + ['value'])
