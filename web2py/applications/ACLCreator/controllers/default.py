@@ -63,7 +63,8 @@ def createRule(zone_name, src_ip, destIP, destPort, type, same_IP_h, obj_pref):
 
 
 def RFC1918(ip):
-    if str(ip) == '250.1.1.1' or str(ip) == '251.2.2.2':
+    if str(ip) == '250.1.1.1' or str(ip) == '251.2.2.2' or str(ip) == '251.2.2.3' or str(ip) == '253.3.3.4' or str(ip) == '253.3.3.5' \
+            or str(ip) == '253.3.3.6' or str(ip) == '253.3.3.7' or str(ip) == '253.3.3.8' or str(ip) == '253.3.3.9':
         return True
     _ip = IP(str(ip))
     _ipa = _ip.iptype()
@@ -248,19 +249,50 @@ def zones():
         _tmp_data = pd.DataFrame(
             {seg_IP_col: ['251.2.2.2'], seg_VM_col: ['_delME_TEST2-OBJECT'], 'Zone_name': ['TEST2']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
+        _tmp_data = pd.DataFrame(
+            {seg_IP_col: ['251.2.2.3'], seg_VM_col: ['_delME_TEST3-OBJECT'], 'Zone_name': ['TEST2']})
+        xl_dataframe = xl_dataframe.append(_tmp_data)
+        _tmp_data = pd.DataFrame(
+            {seg_IP_col: ['253.3.3.4'], seg_VM_col: ['_delME_TEST4-OBJECT'], 'Zone_name': ['TEST3']})
+        xl_dataframe = xl_dataframe.append(_tmp_data)
+        _tmp_data = pd.DataFrame(
+            {seg_IP_col: ['253.3.3.5','253.3.3.6','253.3.3.7','253.3.3.8','253.3.3.9'],
+             seg_VM_col: ['_delME_TEST5-OBJECT','_delME_TEST6-OBJECT','_delME_TEST7-OBJECT','_delME_TEST8-OBJECT','_delME_TEST9-OBJECT']})
+        _tmp_data['Zone_name'] = 'TEST3'
+        xl_dataframe = xl_dataframe.append(_tmp_data)
+        del _tmp_data
 
         # Add Test DATA to DATA FILE
+        # TEST TEST1 MANY PORTS TO TEST2
+        _tmp_data = pd.DataFrame({transport_col: ['udp','udp','tcp'], dstport_col: [999,666,999]})
+        _tmp_data[src_col] = '250.1.1.1' # auto_[TEST1]__delME_TEST1-OBJECT
+        _tmp_data[dst_col] = '251.2.2.2' # auto_[TEST2]__delME_TEST2-OBJECT
+        _tmp_data['src_zone_name'] = 'TEST1'
+        _tmp_data['dst_zone_name'] = 'TEST2'
+        data = data.append(_tmp_data)
+        # test whole ZONE to HOST
+        _tmp_data = pd.DataFrame({src_col: ['253.3.3.4','253.3.3.5','253.3.3.6','253.3.3.7','253.3.3.8','253.3.3.9'],
+                                  transport_col: ['udp', 'udp', 'tcp','tcp','udp','udp'],
+                                  dstport_col: [999, 666, 9998,6669,666,999]})
+        _tmp_data[dst_col] = '250.1.1.1'
+        _tmp_data['src_zone_name'] = 'TEST3'
+        _tmp_data['dst_zone_name'] = 'TEST1'
+        data = data.append(_tmp_data)
+
         _tmp_data = pd.DataFrame(
-            {src_col: ['250.1.1.1'], dst_col: ['251.2.2.2'], transport_col: ['udp'], dstport_col: [999],
-             'src_zone_name': ['TEST1'], 'dst_zone_name': ['TEST2']})
+            {src_col: ['251.2.2.2','250.1.1.1','250.1.1.1','251.2.2.3','172.16.15.1'],
+             dst_col: ['250.1.1.1','250.1.1.1','251.2.2.3','172.16.15.1', '250.1.1.1'],
+             transport_col: ['udp','tcp','udp','udp','udp'],
+             dstport_col: [666,999,666,999,666],
+             'src_zone_name': ['TEST2','TEST1','TEST1','TEST2','UNKNOWN'],
+             'dst_zone_name': ['TEST1','TEST1','TEST2','UNKNOWN','TEST1']})
         data = data.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {src_col: ['251.2.2.2'], dst_col: ['250.1.1.1'], transport_col: ['udp'], dstport_col: [666],
-             'src_zone_name': ['TEST2'], 'dst_zone_name': ['TEST1']})
-        data = data.append(_tmp_data)
-        _tmp_data = pd.DataFrame(
-            {src_col: ['172.1.1.1'], dst_col: ['251.2.2.2'], transport_col: ['udp'], dstport_col: [999],
-             'src_zone_name': ['UNKNOWN'], 'dst_zone_name': ['TEST2']})
+            {src_col: ['172.16.15.1','172.16.15.2','172.16.15.1'],
+             dst_col: ['251.2.2.2','251.2.2.2','251.2.2.2'],
+             transport_col: ['udp','tcp','udp'], dstport_col: [999,999,777]})
+        _tmp_data[ 'src_zone_name'] ='UNKNOWN'
+        _tmp_data['dst_zone_name'] = 'TEST2'
         data = data.append(_tmp_data)
         del _tmp_data
         ############################ END TEST SECTION ################################
@@ -273,7 +305,7 @@ def zones():
             ##########################BEGIN ZONE PROCESSING #######################
             index_service = 1
             for zone_name in xl_dataframe['Zone_name'].unique():
-               if zone_name in sheet_to_procc or zone_name == 'TEST1' or zone_name == 'TEST2':
+               if zone_name in sheet_to_procc or zone_name == 'TEST1' or zone_name == 'TEST2' or zone_name == 'TEST3':
                 # Create objects for all VMs from segment_file
                 for index, row in xl_dataframe.loc[xl_dataframe['Zone_name'] == zone_name].iterrows():
                     if row[seg_IP_col] not in objectNetwork_tuple['value']:
@@ -291,7 +323,7 @@ def zones():
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
-                if zonesubnetpref == '':
+                if zonesubnetpref == '0':
                     zonesubnetprefs = zone_name + '_IP'
                 else:
                     zonesubnetprefs = zonesubnetpref
@@ -433,6 +465,8 @@ def zones():
 
             config = createConfig(zone_rules_writer, object_data, objectGroup_network_list, objectGroup_service_list,
                                   port_data)
+
+
             # Remove stale file
             db(db.t_cache.f_name == 'config_' + request.vars.filename + '_' + request.vars.segment_file).delete()
             db.t_cache.insert(f_name='config_' + request.vars.filename + '_' + f_id, f_str_data=config)
