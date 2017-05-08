@@ -320,9 +320,8 @@ def zones():
                     (data[src_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
                         data['dst_zone_name'] != zone_name))]
 
-                dest_tree = data[
-                    (data[dst_col].isin(zone_ips) & (data[dstport_col] <= int(maxPorts)) & (
-                        data['src_zone_name'] == 'UNKNOWN'))]
+                # DEST tree - all interactions TO this zone
+                dest_tree = data[(data['dst_zone_name'] == zone_name) & (data['src_zone_name'] != zone_name)]
 
                 # Group by DEST IP - tree to DEST ip address so dest ip - list of all who interacte with it
                 #dest_tree = source_tree.groupby(
@@ -333,11 +332,11 @@ def zones():
                 port_data = pd.DataFrame(objectPort_tuple)
                 ######################### END OF SORTING ################################
 
-                # Create dst SERVICE group
                 last_dst = ''
                 for dst_port, garbage in service_dst_grp.iteritems():
                     if RFC1918(dst_port[0]) and not broadcast(dst_port[0]):
                         if last_dst is '' or dst_port[0] != last_dst:
+                            # Create dst SERVICE group
                             _tmp_port_grp_obj = serviceObjPref + str(index_service)
                             # Create SERVICE object for DST if not exist
                             if _tmp_port_grp_obj not in objectGroup_service_list['obj_name']:
