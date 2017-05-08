@@ -63,6 +63,8 @@ def createRule(zone_name, src_ip, destIP, destPort, type, same_IP_h, obj_pref):
 
 
 def RFC1918(ip):
+    if str(ip) == '250.1.1.1' or str(ip) == '251.2.2.2':
+        return True
     _ip = IP(str(ip))
     _ipa = _ip.iptype()
     return True if _ipa == 'PRIVATE' else False
@@ -186,17 +188,14 @@ def zones():
             except KeyError:
                 None # do nothing cuz incorrect sheet
             del df_tmp
-        df_tmp = pd.DataFrame(index=[seg_IP_col,seg_VM_col,'Zone_name'])
 
-        df_tmp[seg_IP_col,seg_VM_col,'Zone_name'] = ['1.1.1.1', '_delME_TEST1-OBJECT', str(xl_dataframe['Zone_name'].unique()[0])]
-        df_tmp[seg_IP_col,seg_VM_col,'Zone_name'] = ['2.2.2.2', '_delME_TEST2-OBJECT', str(xl_dataframe['Zone_name'].unique()[1])]
+
 
         # Test DATA
         #df_tmp[src_col,'Zone_name'] = ['1.1.1.1','2.2.2.2', 'udp', 999,'TEST2']
 
         #df_tmp['Zone_name'] = ['2.2.2.2','1.1.1.1', 'udp', 666,'TEST1']
         # ADD TEST DATA TO main DATA
-        xl_dataframe = xl_dataframe.append(df_tmp)
 
 
         # Check if file already processed
@@ -236,7 +235,31 @@ def zones():
             data = pd.read_csv(_tmp_buffer)
             del _tmp_buffer
         # delete object from memory if record already present
-        del _tmp_row,
+        del _tmp_row
+
+
+
+        ############################ TEST SECTION ################################
+        # Add Test DATA to SEGMENT FILE
+        df_tmp = pd.DataFrame(index=[seg_IP_col,seg_VM_col,'Zone_name'])
+        _tmp_data = pd.DataFrame(
+            {seg_IP_col: ['250.1.1.1'], seg_VM_col: ['_delME_TEST1-OBJECT'], 'Zone_name': ['TEST1']})
+        xl_dataframe = xl_dataframe.append(_tmp_data)
+        _tmp_data = pd.DataFrame(
+            {seg_IP_col: ['251.2.2.2'], seg_VM_col: ['_delME_TEST2-OBJECT'], 'Zone_name': ['TEST2']})
+        xl_dataframe = xl_dataframe.append(_tmp_data)
+
+        # Add Test DATA to DATA FILE
+        _tmp_data = pd.DataFrame(
+            {src_col: ['250.1.1.1'], dst_col: ['251.2.2.2'], transport_col: ['udp'], dstport_col: [999],
+             'src_zone_name': ['TEST1'], 'dst_zone_name': ['TEST2']})
+        data = data.append(_tmp_data)
+        _tmp_data = pd.DataFrame(
+            {src_col: ['251.2.2.2'], dst_col: ['250.1.1.1'], transport_col: ['udp'], dstport_col: [666],
+             'src_zone_name': ['TEST2'], 'dst_zone_name': ['TEST1']})
+        data = data.append(_tmp_data)
+        del _tmp_data
+        ############################ END TEST SECTION ################################
 
         _tmp_row = db.t_cache(f_name='config' + request.vars.filename + '_' + f_id)
         if not _tmp_row:
@@ -245,8 +268,8 @@ def zones():
             data = data.loc[data[dstport_col] < maxPorts]
             ##########################BEGIN ZONE PROCESSING #######################
             index_service = 1
-            for zone_name in xl.book.sheet_names():
-               if zone_name in sheet_to_procc:
+            for zone_name in xl_dataframe['Zone_name'].unique():
+               if zone_name in sheet_to_procc or zone_name == 'TEST1' or zone_name == 'TEST2':
                 # Create objects for all VMs from segment_file
                 for index, row in xl_dataframe.loc[xl_dataframe['Zone_name'] == zone_name].iterrows():
                     if row[seg_IP_col] not in objectNetwork_tuple['value']:
@@ -338,8 +361,10 @@ def zones():
                             _obj_name = data.loc[data[dst_col] == dst_port[0], ['dst_zone_name']].drop_duplicates()
                             _dst_zone_name = _obj_name.iloc[0]['dst_zone_name']
                             if _dst_zone_name != 'UNKNOWN':
-                                objectNetwork_tuple['obj_name'].append(objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + dst_port[0])
-                                objectNetwork_tuple['description'].append(xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0] + 'from ' + _dst_zone_name)
+                                objectNetwork_tuple['obj_name'].append(
+                                    objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][1])
+                                objectNetwork_tuple['description'].append(
+                                    xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][1] + ' from ' + _dst_zone_name)
                             else:
                                 objectNetwork_tuple['obj_name'].append(
                                     objPref + dst_obj_pref + dst_port[0])
