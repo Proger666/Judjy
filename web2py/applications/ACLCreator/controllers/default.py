@@ -364,9 +364,9 @@ def zones():
                 # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
                 aggregate_src_hit = source_tree.groupby([dst_col])[src_col].nunique()
                 # Hit to SRC inside zone
-                aggregate_dst_zone_hit = dest_tree.groupby([dst_col, 'src_zone_name'])[src_col].unique()
+                aggregate_dst_zone_hit = dest_tree.groupby([dst_col, 'src_zone_name'])[src_col].nunique()
                 # services  TO this zone
-                service_dst_grp = dest_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].unique()
+                service_dst_grp = dest_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].nunique()
                 # Add missing ports
                 for dest_port_proto, row in service_dst_grp.iteritems():
                     if dest_port_proto[2] + '_' + str(dest_port_proto[1]) not in objectPort_tuple['obj_name']:
@@ -493,7 +493,16 @@ def zones():
                         # Create objects for all src to this DST
                         uniq_src_to_dst = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]].drop_duplicates()
                         for index, row in uniq_src_to_dst.iterrows():
-                            object_data = objectNetwork_tuple
+                            #
+                            if row[src_col] not in objectNetwork_tuple['value']:
+                                if validate_ip(row[src_col]):
+                                    objectNetwork_tuple['value'].append(row[src_col])
+                                    objectNetwork_tuple['obj_name'].append(
+                                        objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + row[src_col])
+                                    objectNetwork_tuple['description'].append(row[src_col] + ' from ' + 'LAN')
+                                    objectNetwork_tuple['type'].append('host')
+                        object_data = pd.DataFrame(objectNetwork_tuple)
+
                         if hitcount >= int(sameIPhost):
                             _dst_obj = _findObjectName(object_data, dest_port[0])
                             zone_rules_writer.append(
@@ -527,10 +536,9 @@ def zones():
                                         objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].addmember(
                                         _tmp_src_obj_name)
                                     #        Check if destination is RFC1918
-                            _dst_obj = _findObjectName(object_data, dest_port)
+                            _dst_obj = _findObjectName(object_data, dest_port[0])
                             zone_rules_writer.append(
-                                'access-list ' + re.sub('[ ,]', '_',
-                                                        zone_name.capitalize()) + '_in extended permit object-group ' +
+                                'access-list ' + 'LAN' + '_in extended permit object-group ' +
                                 _service_obj.name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                 _dst_obj)
                     index_srv += 1
