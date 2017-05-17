@@ -15,14 +15,17 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['Object preference','Maximum port value','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Maximum port value','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
-set_value_def = ['auto_','10000', 'Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment', '-', '[', ']',
+set_value_def = ['9872,8383,8080,3389,8443,21000,5355,2021,7403,5044,9872,15000,7301,4903,7802,10201,22012,8027,2049,10555,10666','2000','auto_','22000', 'Main,ABS+CRM,Processing,CASHIN,'
+                                                                                                                                                          'SWIFT+AZIPS,HOKS,Money Transfers,Test Segment', '-', '[', ']',
              '0', 'obj-', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
              'transport: Descending', 'VM', 'Ip addres']
 if not session.set_value or len(session.set_value) != len(set_name):
     session.set_value = set_value_def
-obj_pref = session.set_value[session.set_name.index('Object preference')]
+objPref = session.set_value[session.set_name.index('Object preference')]
+max_static_port = session.set_value[session.set_name.index('Maxium \'STATIC\' port')]
+specific_ports = session.set_value[session.set_name.index('Specific ports add to analyze')]
 src_col = session.set_value[session.set_name.index('Source IP column')]
 dst_col = session.set_value[session.set_name.index('Destination IP column')]
 dstport_col = session.set_value[session.set_name.index('Destination PORT column')]
@@ -279,7 +282,7 @@ def zones():
         # test whole ZONE to HOST
         _tmp_data = pd.DataFrame({src_col: ['253.3.3.4','253.3.3.5','253.3.3.6','253.3.3.7','253.3.3.8','253.3.3.9'],
                                   transport_col: ['udp', 'udp', 'tcp','tcp','udp','udp'],
-                                  dstport_col: [999, 666, 9998,6669,666,999]})
+                                  dstport_col: [999, 666, 998,669,666,999]})
         _tmp_data[dst_col] = '250.1.1.1'
         _tmp_data['src_zone_name'] = 'TEST3'
         _tmp_data['dst_zone_name'] = 'TEST1'
@@ -310,6 +313,7 @@ def zones():
             data = data.loc[data[dstport_col] < maxPorts]
             ##########################BEGIN ZONE PROCESSING #######################
             index_service = 1
+            index_srv_dst = 1
             for zone_name in xl_dataframe['Zone_name'].unique():
                if zone_name in sheet_to_procc or zone_name == 'TEST1' or zone_name == 'TEST2' or zone_name == 'TEST3':
                 # Create objects for all VMs from segment_file
@@ -475,20 +479,20 @@ def zones():
                                 _service_obj.name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                 _dst_obj)
                         index_srv += 1
+                zone_rules_writer.append(
+                        'access-list ' + zone_name.capitalize() + '_in extended permit ip any any log 6 interval 300')
                 ######################## DESTINATION RULES ##################
-                index_srv = 1
                 for dest_port, hitcount in aggregate_dst_zone_hit.iteritems():
-
 
                     # Check if destination is RFC1918 and not broadcast or net adress
                     if RFC1918(dest_port[0]) and not broadcast(dest_port[0]):
                         # Create service Object and append ports to it
-                        # get all uniq ports for this DST
                         _tmp_service_grp_obj_name = serviceObjPref + str(index_service)
                         objectGroup_service_list['obj_name'].append(_tmp_service_grp_obj_name)
                         objectGroup_service_list['dst'].append(dst_port[0] + zone_name)
                         objectGroup_service_list['object'].append(GroupObject(_tmp_service_grp_obj_name))
                         index_service += 1
+                        # get all uniq ports for this DST
                         uniq_ports_dst = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [dstport_col, transport_col]].drop_duplicates()
                         # Append all uniq ports to service object
                         for index, row in uniq_ports_dst.iterrows():
@@ -496,7 +500,7 @@ def zones():
                         # Create objects for all src to this DST
                         uniq_src_to_dst = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]].drop_duplicates()
                         for index, row in uniq_src_to_dst.iterrows():
-                            #
+                            # ADD any missing src to bjects
                             if row[src_col] not in objectNetwork_tuple['value']:
                                 if validate_ip(row[src_col]):
                                     objectNetwork_tuple['value'].append(row[src_col])
@@ -510,7 +514,7 @@ def zones():
                             _dst_obj = _findObjectName(object_data, dest_port[0])
                             zone_rules_writer.append(
                                 'access-list ' + 'LAN' + '_in extended permit object-group '
-                                + _service_obj.name + ' object-group ' + _findObjectName(object_data,
+                                + _tmp_service_grp_obj_name + ' object-group ' + _findObjectName(object_data,
                                                                                          zonesubnetprefs) + ' object-group ' + _dst_obj)
                         else:
                             grouped = dest_tree.loc[dest_tree[dst_col] == dest_port[0], [src_col]]
@@ -543,11 +547,9 @@ def zones():
                             _dst_obj = _findObjectName(object_data, dest_port[0])
                             zone_rules_writer.append(
                                 'access-list ' + 'LAN' + '_in extended permit object-group ' +
-                                _service_obj.name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
+                                _tmp_service_grp_obj_name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                 _dst_obj)
-                    index_srv += 1
-
-
+                    index_srv_dst += 1
             config = createConfig(zone_rules_writer, object_data, objectGroup_network_list, objectGroup_service_list,
                                   port_data)
 
