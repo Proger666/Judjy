@@ -371,7 +371,7 @@ def zones():
                 # group by dest ip and count non unique values (source ip) to count how much src ip connects to same dst and port
                 aggregate_src_hit = source_tree.groupby([dst_col])[src_col].nunique()
                 # Hit to SRC inside zone
-                aggregate_dst_zone_hit = dest_tree.groupby([dst_col, 'src_zone_name'])[src_col].nunique()
+                aggregate_dst_zone_hit = dest_tree.groupby([dst_col, dstport_col, 'src_zone_name'])[src_col].nunique()
                 # services  TO this zone
                 service_dst_grp = dest_tree.groupby([dst_col, dstport_col, transport_col])[dstport_col].nunique()
                 # Add missing ports
@@ -510,8 +510,12 @@ def zones():
                                     objectNetwork_tuple['type'].append('host')
                         object_data = pd.DataFrame(objectNetwork_tuple)
 
+
+
+
                         if hitcount >= int(sameIPhost):
                             _dst_obj = _findObjectName(object_data, dest_port[0])
+
                             zone_rules_writer.append(
                                 'access-list ' + 'LAN' + '_in extended permit object-group '
                                 + _tmp_service_grp_obj_name + ' object-group ' + _findObjectName(object_data,
