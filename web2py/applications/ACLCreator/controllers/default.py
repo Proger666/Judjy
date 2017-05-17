@@ -15,13 +15,14 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['Maximum port value','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['Object preference','Maximum port value','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
-set_value_def = ['10000', 'Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment', '-', '[', ']',
+set_value_def = ['auto_','10000', 'Main,ABS+CRM,Processing,CASHIN,SWIFT+HOKS+AZIPS,Money Transfers,Test Segment', '-', '[', ']',
              '0', 'obj-', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
              'transport: Descending', 'VM', 'Ip addres']
 if not session.set_value or len(session.set_value) != len(set_name):
     session.set_value = set_value_def
+obj_pref = session.set_value[session.set_name.index('Object preference')]
 src_col = session.set_value[session.set_name.index('Source IP column')]
 dst_col = session.set_value[session.set_name.index('Destination IP column')]
 dstport_col = session.set_value[session.set_name.index('Destination PORT column')]
@@ -138,7 +139,6 @@ def zones():
     set_name = session.set_name
     if request.vars.segment_file is not None and len(request.vars) is not 0:
         sameIPhost = request.vars.maxH
-        objPref = request.vars.objpref
         # extract max ports that was saved in DB with data file
         maxPorts = maxports
         if hasattr(request.vars.segment_file, 'file'):
@@ -203,7 +203,7 @@ def zones():
 
 
         # Check if file already processed
-        _tmp_row = db.t_cache(f_name='processed_' + request.vars.filename)
+        _tmp_row = db.t_cache(f_name='processed_' + request.vars.filename+f_id)
         if not _tmp_row:
             # REMOVE BIG PORST from data
             data = initial_data[initial_data[dstport_col] < maxPorts]
@@ -214,21 +214,24 @@ def zones():
                     src_z_name = str(
                         xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].values[0][2])
                 except IndexError:
-                    data.ix[index, 'src_zone_name'] = 'UNKNOWN'
+                    data.set_value(index, 'src_zone_name',
+                                   'UNKNOWN')
                 else:
-
-                    data.ix[index, 'src_zone_name'] = src_z_name
+                    data.set_value(index, 'src_zone_name',
+                                   src_z_name)
                 try:
                     # find Zone name  for DST based on IP
                     dst_z_name = str(
                         xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].values[0][2])
                 except IndexError:
-                    data.ix[index, 'dst_zone_name'] = 'UNKNOWN'
+                    data.set_value(index, 'dst_zone_name',
+                                   'UNKNOWN')
                 else:
-                    data.ix[index, 'dst_zone_name'] = dst_z_name
+                    data.set_value(index, 'dst_zone_name',
+                                   dst_z_name)
 
             # Add processed file to cache
-            db.t_cache.insert(f_name='processed_' + request.vars.filename, f_str_data=data.to_csv(index=False))
+            db.t_cache.insert(f_name='processed_' + request.vars.filename+f_id, f_str_data=data.to_csv(index=False))
             db.commit()
         else:
             # Create buffer to feed it to pandas
@@ -525,6 +528,7 @@ def zones():
                                 # Check if current port already member of current object else ADD MEMBER
                                 # TUPLE [FIRST NAME] [ GET INDEX OF ELEMNT]. CALL MEMBER FUNC
                                #try:
+                            for src_ip in grouped[src_col]:
                                 _tmp_src_obj_name = _findObjectName(object_data, src_ip)
                                #except IndexError:
                                    #print src_ip
@@ -610,7 +614,7 @@ def graph():
     data = pd.read_csv(
         db.t_data.f_data.retrieve(db(db.t_data.f_name.like(request.vars.filename)).select().first().f_data)[1])
     data = data.loc[(data[src_col] == request.vars.ip)
-                    & (data[dst_col] <= int(request.vars.ports)),
+                    & (data[dstport_col] <= int(request.vars.ports)),
                     [dst_col, dstport_col]]
     with open(path.relpath('applications/ACLCreator/static/output.csv'), 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',')
