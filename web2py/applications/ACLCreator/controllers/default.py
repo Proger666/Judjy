@@ -15,10 +15,10 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Maximum port value','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
 set_value_def = ['1900,1500,1947,1512,9872,8383,8080,3389,8443,21000,5355,2021,7403,5044,9872,15000,7301,4903,'
-                 '7802,10201,22012,8027,2049,10555,10666','1024','auto_','22000', 'Main,ABS+CRM,Processing,CASHIN,'
+                 '7802,10201,22012,8027,2049,10555,10666','1024','auto_', 'Main,ABS+CRM,Processing,CASHIN,'
                                                                                                                                                           'SWIFT+AZIPS,HOKS,Money Transfers,Test Segment', '-', '[', ']',
              '0', 'obj-', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
              'transport: Descending', 'VM', 'Ip addres']
@@ -44,7 +44,8 @@ zonesubnetpref = session.set_value[session.set_name.index('Zone subnet empty pre
 dst_obj_pref = session.set_value[session.set_name.index('Destination obj prefix')]
 sheet_to_procc = session.set_value[session.set_name.index('Sheets to analyze')]
 serviceObjPref = session.set_value[session.set_name.index('Prefix for Service obj')]  # 'SERVICE_srv_'
-maxports = int(session.set_value[session.set_name.index('Maximum port value')])  # 'SERVICE_srv_'
+maxports = sorted(specific_ports, key=int, reverse=True)
+maxports = int(maxports[0])  # 'SERVICE_srv_'
 
 
 def user(): return dict(form=auth())
@@ -179,6 +180,8 @@ def zones():
         zone_rules_writer = []
         # zone_rules = pd.DataFrame(zone_rules_writer.getvalue(), columns=['src.ip, dst.ip, dst.port'])
         zone_rules = StringIO.StringIO()
+        xl_nets = xl.parse('Nets')
+
         xl_dataframe = pd.DataFrame(columns=[seg_VM_col, seg_IP_col, 'Zone_name'])
         for sheet in sheets:
            try:
@@ -337,10 +340,10 @@ def zones():
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
-                if zonesubnetpref == '0':
-                    zonesubnetprefs = zone_name + '_IP'
-                else:
-                    zonesubnetprefs = zonesubnetpref
+                try:
+                    zone_NET = str(IP(xl_nets.loc[xl_nets['Net_name'] == zone_name]['Net_new'][0]).net()) + ' ' + str(IP(xl_nets.loc[xl_nets['Net_name'] == 'ATM']['Net_new'][0]).netmask())
+                except IndexError:
+                    zone_NET = zone_name + '_IP'
                 # remove unicode and cast to STR
                 zone_name = str(zone_name)
                 # Create objects for all uniq ports/transport
@@ -353,7 +356,7 @@ def zones():
                 objectNetwork_tuple['obj_name'].append('zone_' + zone_sep_f + zone_name + zone_sep_s + '_NET')
                 objectNetwork_tuple['type'].append('subnet')
                 objectNetwork_tuple['description'].append('Zone ' + zone_name + ' subnet')
-                objectNetwork_tuple['value'].append(zonesubnetprefs)
+                objectNetwork_tuple['value'].append(zone_NET)
 
 
 
@@ -448,7 +451,7 @@ def zones():
                                 'access-list ' + re.sub(' ', '_',
                                                         zone_name.capitalize()) + '_in extended permit object-group '
                                 + _service_obj.name + ' object-group ' + _findObjectName(object_data,
-                                                                                         zonesubnetprefs) + ' object-group ' + _dst_obj)
+                                                                                         zone_NET) + ' object-group ' + _dst_obj)
                         else:
                             grouped = source_tree.loc[source_tree[dst_col] == dest_port, [src_col]]
 
@@ -493,6 +496,16 @@ def zones():
                     _dst_rul = _dst_rul.groupby(by=[dst_col, dstport_col, transport_col])[src_col].apply(
                            lambda x: ','.join(x.tolist())).to_frame().reset_index()
                     #####
+                    # Concant TCP and UDP rules for same SRCs
+                    _dst_rules_df = pd.DataFrame(columns=[src_col,dst_col,dstport_col,transport_col])
+                    for src_ip in _dst_rul[src_col].unique():
+                        _tmp_data = _dst_rul.loc[(_dst_rul[src_col] == src_ip)]
+                        _tmp_list = [x[1] for x in _tmp_data.groupby(dst_col)]
+                        for DF  in _tmp_list:
+                            for index, row in DF.iterrows():
+                                _result = []
+                                _result.append(row[src_col]+',')
+
                     # Create DST rul
                     for index, row_dst in _dst_rul.iterrows():
                      # Check if destination is RFC1918 and not broadcast or net adress
