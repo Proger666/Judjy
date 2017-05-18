@@ -180,6 +180,7 @@ def zones():
         zone_rules_writer = []
         # zone_rules = pd.DataFrame(zone_rules_writer.getvalue(), columns=['src.ip, dst.ip, dst.port'])
         zone_rules = StringIO.StringIO()
+        #make Nets
         xl_nets = xl.parse('Nets')
 
         xl_dataframe = pd.DataFrame(columns=[seg_VM_col, seg_IP_col, 'Zone_name'])
