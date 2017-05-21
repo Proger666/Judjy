@@ -379,7 +379,8 @@ def zones():
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
                 try:
-                    zone_NET = str(IP(xl_nets.loc[xl_nets['Net_name'] == zone_name]['Net_new'][0]).net()) + ' ' + str(IP(xl_nets.loc[xl_nets['Net_name'] == zone_name]['Net_new'][0]).netmask())
+                    ip = IP(xl_nets.loc[xl_nets['Net_name'] == zone_name,['Net_new']].values[0][0])
+                    zone_NET = str(ip.net()) + ' ' + str(ip.netmask())
                 except (IndexError, KeyError):
                     zone_NET = zone_name + '_IP'
                 # remove unicode and cast to STR
@@ -540,10 +541,10 @@ def zones():
                         match = ','.join(map(str, df[transport_col].repeat(lens).tolist()))
 
                         return pd.Series(dict(
-                            belongs=belongs,
-                            match=match
+                            {dstport_col:belongs,
+                             transport_col:match}
                         ))
-                    _dst_rul.groupby([dst_col,src_col]).apply(f).reset_index()
+                    _dst_rul = _dst_rul.groupby([dst_col,src_col]).apply(f).reset_index()
 
                     # Create DST rul
                     for index, row_dst in _dst_rul.iterrows():
