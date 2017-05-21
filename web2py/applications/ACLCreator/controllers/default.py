@@ -75,13 +75,14 @@ def RFC1918(ip):
     if str(ip) == '250.1.1.1' or str(ip) == '251.2.2.2' or str(ip) == '251.2.2.3' or str(ip) == '253.3.3.4' or str(ip) == '253.3.3.5' \
             or str(ip) == '253.3.3.6' or str(ip) == '253.3.3.7' or str(ip) == '253.3.3.8' or str(ip) == '253.3.3.9':
         return True
-    try:
-        _ip = IP(str(ip))
-        _ipa = _ip.iptype()
-    except ValueError:
-        print ip
-    return True if _ipa == 'PRIVATE' else False
-
+    list_ip = str(ip).split('.')
+    if int(list_ip[0]) == 172:
+        return True
+    elif int(list_ip[0]) == 10:
+        return True
+    elif int(list_ip[0]) == 192 and int(list_ip[1]) == 168:
+        return True
+    return False
 
 def broadcast(src_ip):
     s = str(src_ip)
@@ -139,6 +140,22 @@ def set_session_settings():
     response.flash = 'Settings set'
 
 
+def findSRCNet(xl_nets,src_ip, network_objects):
+    _obj_data = pd.DataFrame(network_objects)
+    try:
+        obj_zone = str(_obj_data.loc[_obj_data['value'] == src_ip, ['zone']].get_value(0, 'zone'))
+        ip = IP(xl_nets.loc[xl_nets['Net_name'] == obj_zone]['Net_new'][0])
+        src_net = str(ip.net()) + '/' + str(ip.netmask())
+        return src_net
+    except KeyError:
+        print('src net not found')
+    else:
+        obj_name = None
+    # Lets guess NET
+    tmp_str = str(src_ip).split('.')
+    src_net = str(tmp_str[0]+'.'+tmp_str[1]+'.'+tmp_str[2]+ '.'+'0'+' 255.255.255.0')
+    return src_net
+
 
 def zones():
     rows = db(db.t_data.f_name.like('%DBSG%')).select()
@@ -191,6 +208,7 @@ def zones():
                                'type': [],
                                'value': [],
                                'new_value':[],
+                               'zone':[],
                                'description': []}
 
         zone_rules_writer = []
@@ -355,7 +373,8 @@ def zones():
                         obj_name = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + re.sub('[ ,]', '_', row[seg_VM_col])
                         obj_description = re.sub('[ ,]', '_', row[seg_VM_col]) + ' from ' + row['Zone_name']
                         obj_type = 'host'
-                        create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value)
+                        obj_zone = zone_name
+                        create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone)
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
@@ -376,7 +395,8 @@ def zones():
                 obj_type = 'subnet'
                 obj_value = zone_NET
                 obj_description = 'Zone ' + zone_name + ' subnet'
-                create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value,obj_description, 'No_new_value')
+                obj_zone = zone_name
+                create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value,obj_description, 'No_new_value', obj_zone)
 
 
 
@@ -448,7 +468,7 @@ def zones():
                                 obj_name = objPref + dst_obj_pref + dst_port[0]
                                 obj_description = 'LAN host'
                             obj_type = 'host'
-                            create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,'No_new_value')
+                            create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,'No_new_value', 'No_zone_value')
 
                 # Make objects dataframe
                 object_data = pd.DataFrame(objectNetwork_tuple)
@@ -530,18 +550,19 @@ def zones():
                      # Check if destination is RFC1918 and not broadcast or net adress
                      if RFC1918(row_dst[dst_col]) and not broadcast(row_dst[dst_col]):
                        uniq_src_dst = row_dst[src_col].split(',')
+                       # Create objects for all src to this DST
+                       for src_ip in uniq_src_dst:
+                           # ADD any missing src to objects
+                           if src_ip not in objectNetwork_tuple['value']:
+                               if validate_ip(src_ip):
+                                   obj_value = src_ip
+                                   obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + src_ip
+                                   obj_description = 'LAN host'
+                                   obj_type = 'host'
+                                   create_Network_Object(objectNetwork_tuple, obj_name, obj_type, obj_value,
+                                                         obj_description, 'No_new_value', 'No_zone_value')
+                       object_data = pd.DataFrame(objectNetwork_tuple)
                        if len(uniq_src_dst) <= int(sameIPhost):
-                           # Create objects for all src to this DST
-                           for src_ip in uniq_src_dst:
-                               # ADD any missing src to objects
-                               if src_ip not in objectNetwork_tuple['value']:
-                                   if validate_ip(src_ip):
-                                       obj_value = src_ip
-                                       obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + src_ip
-                                       obj_description = 'LAN host'
-                                       obj_type = 'host'
-                                       create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, 'No_new_value')
-                           object_data = pd.DataFrame(objectNetwork_tuple)
                            # Create service Object for DST and append ports to it
                            _tmp_service_grp_obj_name = serviceObjPref + str(index_service)
                            objectGroup_service_list['obj_name'].append(_tmp_service_grp_obj_name)
@@ -580,8 +601,43 @@ def zones():
                                _tmp_service_grp_obj_name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                _dst_obj)
                        else:
-                           print('asd')
-
+                           print('dest rules fix')
+                           src_nets =[]
+                           src_objects = []
+                           for src_ip in row_dst[src_col].split(','):
+                               src_net  = findSRCNet(xl_nets,src_ip, objectNetwork_tuple)
+                               # Add object for this net if not present
+                               if src_net not in objectNetwork_tuple['value']:
+                                   obj_name = src_net.split(' ')[0]+'_NET'
+                                   obj_value = src_net
+                                   obj_type = 'subnet'
+                                   obj_description = 'Unspecified LAN Zone'
+                                   create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,'No_new_value', 'No_zone_name')
+                                   object_data = pd.DataFrame(objectNetwork_tuple)
+                               else:
+                                   obj_name = _findObjectName(object_data, src_net)
+                               # Create SRV as NET object
+                               _tmp_dst_grp_obj = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + obj_name
+                               # This is GROUP SRC object
+                               if _tmp_dst_grp_obj not in objectGroup_network_list['obj_name']:
+                                    _network_obj = GroupObject(_tmp_dst_grp_obj)
+                                    objectGroup_network_list['obj_name'].append(_tmp_dst_grp_obj)
+                                    src_objects.append(_tmp_dst_grp_obj)
+                                    objectGroup_network_list['object'].append(_network_obj)
+                               # Add SRC_NET objects as member of this group
+                               if not objectGroup_network_list['object'][
+                                   objectGroup_network_list['obj_name'].index(_tmp_dst_grp_obj)].ismember(
+                                   _tmp_dst_grp_obj):
+                                   objectGroup_network_list['object'][
+                                       objectGroup_network_list['obj_name'].index(_tmp_dst_grp_obj)].addmember(
+                                       _tmp_dst_grp_obj)
+                           _dst_obj = _findObjectName(object_data, row_dst[dst_col])
+                           for src_object in src_objects:
+                               _tmp_src_grp_obj = objectGroup_network_list['obj_name'][objectGroup_network_list['obj_name'].index(src_object)]
+                               zone_rules_writer.append(
+                                    'access-list ' + 'LAN' + '_in extended permit object-group ' +
+                                    row_dst[dstport_col] + ' object-group ' + _tmp_src_grp_obj + ' object ' +
+                                    _dst_obj)
             config = createConfig(zone_rules_writer, object_data, objectGroup_network_list,
                                       objectGroup_service_list,
                                       port_data)
@@ -594,11 +650,15 @@ def zones():
     return locals()
 
 
-def create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value):
+def create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone):
     objectNetwork_tuple['obj_name'].append(obj_name)
     objectNetwork_tuple['type'].append(obj_type)
     objectNetwork_tuple['description'].append(obj_description)
     objectNetwork_tuple['value'].append(obj_value)
+    if obj_zone != 'No_zone_value':
+        objectNetwork_tuple['zone'].append(obj_zone)
+    else:
+        objectNetwork_tuple['zone'].append('None')
     if obj_new_value != 'No_new_value':
         objectNetwork_tuple['new_value'].append(obj_new_value)
     else:
