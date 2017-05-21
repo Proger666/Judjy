@@ -115,7 +115,7 @@ def createConfig(zones_rules, object_data, objectGroup_network_list, objectGroup
     # create all objects
     for index, row in object_data.iterrows():
         result.append('object network ' + row['obj_name'] + '\n' +
-                      row['type'] + ' ' + row['value'] + '\n' +
+                      row['type'] + ' ' + row['new_value'] + '\n' +
                       'description ' + row['description'])
     for index, row in port_data.iterrows():
         result.append('object service ' + row['obj_name'] + '\n' +
@@ -190,6 +190,7 @@ def zones():
         objectNetwork_tuple = {'obj_name': [],
                                'type': [],
                                'value': [],
+                               'new_value':[],
                                'description': []}
 
         zone_rules_writer = []
@@ -274,22 +275,22 @@ def zones():
 
         ############################ TEST SECTION ################################
         # Add Test DATA to SEGMENT FILE
-        df_tmp = pd.DataFrame(index=[seg_IP_col,seg_VM_col,'Zone_name'])
+        df_tmp = pd.DataFrame(index=[seg_NEWIP_col, seg_IP_col,seg_VM_col,'Zone_name'])
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['101.1.1.1'], seg_NEWIP_col:['250.1.1.1'], seg_VM_col: ['_delME_TEST1-OBJECT'], 'Zone_name': ['TEST1']})
+            {seg_NEWIP_col: ['101.1.1.1'], seg_IP_col:['250.1.1.1'], seg_VM_col: ['_delME_TEST1-OBJECT'], 'Zone_name': ['TEST1']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['102.2.2.2'], seg_NEWIP_col:['251.2.2.2'], seg_VM_col: ['_delME_TEST2-OBJECT'], 'Zone_name': ['TEST2']})
+            {seg_NEWIP_col: ['102.2.2.2'],seg_IP_col :['251.2.2.2'], seg_VM_col: ['_delME_TEST2-OBJECT'], 'Zone_name': ['TEST2']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['102.2.2.3'],seg_NEWIP_col:['251.2.2.3'], seg_VM_col: ['_delME_TEST3-OBJECT'], 'Zone_name': ['TEST2']})
+            {seg_NEWIP_col: ['102.2.2.3'],seg_IP_col:['251.2.2.3'], seg_VM_col: ['_delME_TEST3-OBJECT'], 'Zone_name': ['TEST2']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['103.3.3.4'],seg_NEWIP_col:['253.3.3.4'], seg_VM_col: ['_delME_TEST4-OBJECT'], 'Zone_name': ['TEST3']})
+            {seg_NEWIP_col: ['103.3.3.4'],seg_IP_col:['253.3.3.4'], seg_VM_col: ['_delME_TEST4-OBJECT'], 'Zone_name': ['TEST3']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['103.3.3.5','103.3.3.6','103.3.3.7','103.3.3.8','103.3.3.9'],
-             seg_NEWIP_col: ['253.3.3.5','253.3.3.6','253.3.3.7','253.3.3.8','253.3.3.9'],
+            {seg_NEWIP_col: ['103.3.3.5','103.3.3.6','103.3.3.7','103.3.3.8','103.3.3.9'],
+             seg_IP_col: ['253.3.3.5','253.3.3.6','253.3.3.7','253.3.3.8','253.3.3.9'],
              seg_VM_col: ['_delME_TEST5-OBJECT','_delME_TEST6-OBJECT','_delME_TEST7-OBJECT','_delME_TEST8-OBJECT','_delME_TEST9-OBJECT']})
         _tmp_data['Zone_name'] = 'TEST3'
         xl_dataframe = xl_dataframe.append(_tmp_data)
@@ -345,16 +346,16 @@ def zones():
                     # Create objects for all VMs from segment_file
                     if row[seg_IP_col] not in objectNetwork_tuple['value']:
                         if validate_ip(row[seg_IP_col]):
-                            objectNetwork_tuple['value'].append(row[seg_IP_col])
+                            obj_value = row[seg_IP_col]
+                            obj_new_value = row[seg_NEWIP_col]
                         else:
-                            objectNetwork_tuple['value'].append('NOT ASSIGNED')
+                            obj_value = 'NOT ASSIGNED'
+                            obj_new_value = 'NOT ASSIGNED'
                         zone_name = re.sub('[ ,]', '_', row['Zone_name'])
-                        objectNetwork_tuple['obj_name'].append(
-                            objPref + zone_sep_f + zone_name + zone_sep_s + '_' + re.sub('[ ,]', '_',
-                                                                                         row[seg_VM_col]))
-                        objectNetwork_tuple['description'].append(
-                            re.sub('[ ,]', '_', row[seg_VM_col]) + ' from ' + row['Zone_name'])
-                        objectNetwork_tuple['type'].append('host')
+                        obj_name = objPref + zone_sep_f + zone_name + zone_sep_s + '_' + re.sub('[ ,]', '_', row[seg_VM_col])
+                        obj_description = re.sub('[ ,]', '_', row[seg_VM_col]) + ' from ' + row['Zone_name']
+                        obj_type = 'host'
+                        create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value)
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
@@ -371,10 +372,11 @@ def zones():
                     objectPort_tuple['obj_name'].append(row[transport_col] + '_' + str(row[dstport_col]))
                     objectPort_tuple['value'].append(
                         'service ' + row[transport_col] + ' destination eq ' + str(row[dstport_col]))
-                objectNetwork_tuple['obj_name'].append('zone_' + zone_sep_f + zone_name + zone_sep_s + '_NET')
-                objectNetwork_tuple['type'].append('subnet')
-                objectNetwork_tuple['description'].append('Zone ' + zone_name + ' subnet')
-                objectNetwork_tuple['value'].append(zone_NET)
+                obj_name = 'zone_' + zone_sep_f + zone_name + zone_sep_s + '_NET'
+                obj_type = 'subnet'
+                obj_value = zone_NET
+                obj_description = 'Zone ' + zone_name + ' subnet'
+                create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value,obj_description, 'No_new_value')
 
 
 
@@ -434,23 +436,19 @@ def zones():
                         addMembersToServiceOBJ(_tmp_port_grp_obj, dst_port[2] ,dst_port[1], objectGroup_service_list)# Create DST obj for every dst in zone
                         if dst_port[0] not in objectNetwork_tuple['value']:
                             if validate_ip(dst_port[0]):
-                                objectNetwork_tuple['value'].append(dst_port[0])
+                                obj_value = dst_port[0]
                             else:
-                                objectNetwork_tuple['value'].append('NOT ASSIGNED')
-
+                                obj_value = 'NOT ASSIGNED'
                             _obj_name = data.loc[data[dst_col] == dst_port[0], ['dst_zone_name']].drop_duplicates()
                             _dst_zone_name = _obj_name.iloc[0]['dst_zone_name']
                             if _dst_zone_name != 'UNKNOWN':
-                                objectNetwork_tuple['obj_name'].append(
-                                    objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][1])
-                                objectNetwork_tuple['description'].append(
-                                    xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][1] + ' from ' + _dst_zone_name)
+                                obj_name = objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0]
+                                obj_description = xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0] + ' from ' + _dst_zone_name
                             else:
-                                objectNetwork_tuple['obj_name'].append(
-                                    objPref + dst_obj_pref + dst_port[0])
-                                objectNetwork_tuple['description'].append("LAN host")
-                            objectNetwork_tuple['type'].append('host')
-
+                                obj_name = objPref + dst_obj_pref + dst_port[0]
+                                obj_description = 'LAN host'
+                            obj_type = 'host'
+                            create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,'No_new_value')
 
                 # Make objects dataframe
                 object_data = pd.DataFrame(objectNetwork_tuple)
@@ -538,11 +536,11 @@ def zones():
                                # ADD any missing src to objects
                                if src_ip not in objectNetwork_tuple['value']:
                                    if validate_ip(src_ip):
-                                       objectNetwork_tuple['value'].append(src_ip)
-                                       objectNetwork_tuple['obj_name'].append(
-                                           objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + src_ip)
-                                       objectNetwork_tuple['description'].append(src_ip + ' from ' + 'LAN')
-                                       objectNetwork_tuple['type'].append('host')
+                                       obj_value = src_ip
+                                       obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + src_ip
+                                       obj_description = 'LAN host'
+                                       obj_type = 'host'
+                                       create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, 'No_new_value')
                            object_data = pd.DataFrame(objectNetwork_tuple)
                            # Create service Object for DST and append ports to it
                            _tmp_service_grp_obj_name = serviceObjPref + str(index_service)
@@ -594,6 +592,18 @@ def zones():
 
         redirect(URL('default', 'acl', vars={'segment_file': f_id, 'filename': request.vars.filename}))
     return locals()
+
+
+def create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value):
+    objectNetwork_tuple['obj_name'].append(obj_name)
+    objectNetwork_tuple['type'].append(obj_type)
+    objectNetwork_tuple['description'].append(obj_description)
+    objectNetwork_tuple['value'].append(obj_value)
+    if obj_new_value != 'No_new_value':
+        objectNetwork_tuple['new_value'].append(obj_new_value)
+    else:
+        objectNetwork_tuple['new_value'].append(obj_value)
+
 
 
 def addMembersToServiceOBJ(serviceObjectName, protocol, port, objectGroup_service_list):
