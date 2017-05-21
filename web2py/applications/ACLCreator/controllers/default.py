@@ -198,7 +198,7 @@ def zones():
         #make Nets
         xl_nets = xl.parse('Nets')
 
-        xl_dataframe = pd.DataFrame(columns=[seg_VM_col, seg_IP_col, 'Zone_name'])
+        xl_dataframe = pd.DataFrame(columns=[seg_VM_col, seg_IP_col, 'Zone_name', seg_NEWIP_col])
         for sheet in sheets:
            try:
             sheet.name.decode('ascii')
@@ -207,7 +207,7 @@ def zones():
            else:
             try:
                 df_tmp = xl.parse(sheet.name)
-                df_tmp = df_tmp[[seg_VM_col, seg_IP_col]]
+                df_tmp = df_tmp[[seg_VM_col, seg_IP_col, seg_NEWIP_col]]
                 df_tmp['Zone_name'] = sheet.name
                 _grouped = df_tmp[seg_IP_col]
                 for dst in _grouped.iteritems():
@@ -276,19 +276,20 @@ def zones():
         # Add Test DATA to SEGMENT FILE
         df_tmp = pd.DataFrame(index=[seg_IP_col,seg_VM_col,'Zone_name'])
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['250.1.1.1'], seg_VM_col: ['_delME_TEST1-OBJECT'], 'Zone_name': ['TEST1']})
+            {seg_IP_col: ['101.1.1.1'], seg_NEWIP_col:['250.1.1.1'], seg_VM_col: ['_delME_TEST1-OBJECT'], 'Zone_name': ['TEST1']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['251.2.2.2'], seg_VM_col: ['_delME_TEST2-OBJECT'], 'Zone_name': ['TEST2']})
+            {seg_IP_col: ['102.2.2.2'], seg_NEWIP_col:['251.2.2.2'], seg_VM_col: ['_delME_TEST2-OBJECT'], 'Zone_name': ['TEST2']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['251.2.2.3'], seg_VM_col: ['_delME_TEST3-OBJECT'], 'Zone_name': ['TEST2']})
+            {seg_IP_col: ['102.2.2.3'],seg_NEWIP_col:['251.2.2.3'], seg_VM_col: ['_delME_TEST3-OBJECT'], 'Zone_name': ['TEST2']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['253.3.3.4'], seg_VM_col: ['_delME_TEST4-OBJECT'], 'Zone_name': ['TEST3']})
+            {seg_IP_col: ['103.3.3.4'],seg_NEWIP_col:['253.3.3.4'], seg_VM_col: ['_delME_TEST4-OBJECT'], 'Zone_name': ['TEST3']})
         xl_dataframe = xl_dataframe.append(_tmp_data)
         _tmp_data = pd.DataFrame(
-            {seg_IP_col: ['253.3.3.5','253.3.3.6','253.3.3.7','253.3.3.8','253.3.3.9'],
+            {seg_IP_col: ['103.3.3.5','103.3.3.6','103.3.3.7','103.3.3.8','103.3.3.9'],
+             seg_NEWIP_col: ['253.3.3.5','253.3.3.6','253.3.3.7','253.3.3.8','253.3.3.9'],
              seg_VM_col: ['_delME_TEST5-OBJECT','_delME_TEST6-OBJECT','_delME_TEST7-OBJECT','_delME_TEST8-OBJECT','_delME_TEST9-OBJECT']})
         _tmp_data['Zone_name'] = 'TEST3'
         xl_dataframe = xl_dataframe.append(_tmp_data)
@@ -341,6 +342,7 @@ def zones():
                if zone_name in sheet_to_procc or zone_name == 'TEST1' or zone_name == 'TEST2' or zone_name == 'TEST3':
                 # Create objects for all VMs from segment_file
                 for index, row in xl_dataframe.loc[xl_dataframe['Zone_name'] == zone_name].iterrows():
+                    # Create objects for all VMs from segment_file
                     if row[seg_IP_col] not in objectNetwork_tuple['value']:
                         if validate_ip(row[seg_IP_col]):
                             objectNetwork_tuple['value'].append(row[seg_IP_col])
