@@ -12,7 +12,7 @@
                  <tbody>
                  {{for row in rows:}}
                  <tr>
-                     <td><a onclick="getInputFields(this)" href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename})}}">{{=row.f_name}}</a></td>
+                     <td><a onclick="getInputFields(this)" href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename, 'do_acl':'True'})}}">{{=row.f_name}}</a></td>
                  </tr>
                  {{pass}}
 
@@ -20,13 +20,12 @@
              </table>
                </div>
             <div class="col-md-7">
-            <label>Max host to same ip
-            <input type="text" value="5" name="maxH" class="input-data"></label>
             </div>
 
-                      <input type="submit" />
+                      <input type="submit" value="Send Segment File" />
                       <input type="hidden" name="_formname" value="test" />
         </form>
+        <button class="btn btn-primary btn-round" type="button" onclick="document.location='{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename, 'do_acl':'True'})}}'"> GO !</button>
         <div class="col-md-7">
         <table class="table hover">
             <thead>

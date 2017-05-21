@@ -15,11 +15,11 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Sheets to analyze','separator','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['Max SRC to same host','Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Sheets to analyze','New IP ADD Column','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
-set_value_def = ['1900,1500,1947,1512,9872,8383,8080,3389,8443,21000,5355,2021,7403,5044,9872,15000,7301,4903,'
+set_value_def = ['5','1900,1500,1947,1512,9872,8383,8080,3389,8443,21000,5355,2021,7403,5044,9872,15000,7301,4903,'
                  '7802,10201,22012,8027,2049,10555,10666','1024','auto_', 'Main,ABS+CRM,Processing,CASHIN,'
-                                                                                                                                                          'SWIFT+AZIPS,HOKS,Money Transfers,Test Segment', '-', '[', ']',
+              'SWIFT+AZIPS,HOKS,Money Transfers,Test Segment', 'New IP address', '[', ']',
              '0', 'obj-', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
              'transport: Descending', 'VM', 'Ip addres']
 if not session.set_value or len(session.set_value) != len(set_name):
@@ -30,6 +30,7 @@ specific_ports = session.set_value[session.set_name.index('Specific ports add to
 specific_ports = specific_ports.split(',')
 specific_ports = list(set(specific_ports))
 specific_ports = map(int, specific_ports)
+sameIPhost = session.set_value[session.set_name.index('Max SRC to same host')]
 src_col = session.set_value[session.set_name.index('Source IP column')]
 dst_col = session.set_value[session.set_name.index('Destination IP column')]
 dstport_col = session.set_value[session.set_name.index('Destination PORT column')]
@@ -37,7 +38,6 @@ transport_col = session.set_value[session.set_name.index('PROTOCOL column')]
 seg_VM_col = session.set_value[session.set_name.index('VM name column')]
 seg_IP_col = session.set_value[session.set_name.index('IP ADDRESS column')]
 # bunch of defauls
-separator = session.set_value[session.set_name.index('separator')]
 zone_sep_f = session.set_value[session.set_name.index('First Zone Sep.')]
 zone_sep_s = session.set_value[session.set_name.index('Closing Zone Sep.')]
 zonesubnetpref = session.set_value[session.set_name.index('Zone subnet empty pref')]
@@ -46,7 +46,7 @@ sheet_to_procc = session.set_value[session.set_name.index('Sheets to analyze')]
 serviceObjPref = session.set_value[session.set_name.index('Prefix for Service obj')]  # 'SERVICE_srv_'
 maxports = sorted(specific_ports, key=int, reverse=True)
 maxports = int(maxports[0])  # 'SERVICE_srv_'
-
+seg_NEWIP_col = session.set_value[session.set_name.index('New IP ADD Column')]
 
 def user(): return dict(form=auth())
 
@@ -145,18 +145,33 @@ def zones():
     default_set_value = set_value_def
     set_value = session.set_value
     set_name = session.set_name
-    if request.vars.segment_file is not None and len(request.vars) is not 0:
-        sameIPhost = request.vars.maxH
+    if request.vars.segment_file is not None and len(request.vars) is not 0 and hasattr(request.vars.segment_file, 'file'):
         # extract max ports that was saved in DB with data file
         maxPorts = maxports
-        if hasattr(request.vars.segment_file, 'file'):
-            f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename + 'DBSG'
-            db.t_data.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
-            db.commit()
-        else:
-            f_id = request.vars.segment_file
-        xl  = pd.ExcelFile(db.t_data.f_data.retrieve(db(db.t_data.f_name.like(f_id)).select().first().f_data)[1])
+        f_id = str(datetime.datetime.now().microsecond) + request.vars.segment_file.filename + 'DBSG'
+        db.t_data.insert(f_data=request.vars.segment_file, f_name=f_id, f_ports=request.vars.ports)
+        db.commit()
+        redirect(URL('default', 'zones', vars={'filename':request.vars.filename}))
+    else:
+        try:
 
+            last_record = db(db.t_data.id > 0 and db.t_data.f_name.like('%DBSG%')).select(orderby=~db.t_data.id, limitby=(0, 1)).first().id
+            xl = pd.ExcelFile(db.t_data.f_data.retrieve(db(db.t_data.id == last_record).select().first().f_data)[1])
+            # Load latest files from DB and get sheets from it
+            default_set_value[session.set_name.index('Sheets to analyze')] = ''
+            for x in xl.sheet_names:
+                try:
+                    # TODO: remove last comma
+                    default_set_value[session.set_name.index('Sheets to analyze')] += str(x) + ','
+                except UnicodeEncodeError:
+                    print(x)
+        except AttributeError:
+            print('No segment files in DB')
+    if request.vars.do_acl:
+        maxPorts = maxports
+        request.vars.do_acl = False
+        f_id = request.vars.segment_file
+        xl = pd.ExcelFile(db.t_data.f_data.retrieve(db(db.t_data.f_name.like(f_id)).select().first().f_data)[1])
         # remove unicode and cast to STR
         #sheet_names = [str(x) for x in xl.sheet_names]
         sheets = xl.book.sheets()
@@ -342,8 +357,8 @@ def zones():
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
                 try:
-                    zone_NET = str(IP(xl_nets.loc[xl_nets['Net_name'] == zone_name]['Net_new'][0]).net()) + ' ' + str(IP(xl_nets.loc[xl_nets['Net_name'] == 'ATM']['Net_new'][0]).netmask())
-                except IndexError:
+                    zone_NET = str(IP(xl_nets.loc[xl_nets['Net_name'] == zone_name]['Net_new'][0]).net()) + ' ' + str(IP(xl_nets.loc[xl_nets['Net_name'] == zone_name]['Net_new'][0]).netmask())
+                except (IndexError, KeyError):
                     zone_NET = zone_name + '_IP'
                 # remove unicode and cast to STR
                 zone_name = str(zone_name)
@@ -497,15 +512,18 @@ def zones():
                     _dst_rul = _dst_rul.groupby(by=[dst_col, dstport_col, transport_col])[src_col].apply(
                            lambda x: ','.join(x.tolist())).to_frame().reset_index()
                     #####
-                    # Concant TCP and UDP rules for same SRCs
-                    _dst_rules_df = pd.DataFrame(columns=[src_col,dst_col,dstport_col,transport_col])
-                    for src_ip in _dst_rul[src_col].unique():
-                        _tmp_data = _dst_rul.loc[(_dst_rul[src_col] == src_ip)]
-                        _tmp_list = [x[1] for x in _tmp_data.groupby(dst_col)]
-                        for DF  in _tmp_list:
-                            for index, row in DF.iterrows():
-                                _result = []
-                                _result.append(row[src_col]+',')
+                    def f(df):
+                        import numpy as np
+                        lol = df[dstport_col].str.split(',').tolist()
+                        lens = [len(lst) for lst in lol]
+                        belongs = ','.join(map(str, np.concatenate(lol)))
+                        match = ','.join(map(str, df[transport_col].repeat(lens).tolist()))
+
+                        return pd.Series(dict(
+                            belongs=belongs,
+                            match=match
+                        ))
+                    _dst_rul.groupby([dst_col,src_col]).apply(f).reset_index()
 
                     # Create DST rul
                     for index, row_dst in _dst_rul.iterrows():
@@ -561,6 +579,8 @@ def zones():
                                'access-list ' + 'LAN' + '_in extended permit object-group ' +
                                _tmp_service_grp_obj_name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                _dst_obj)
+                       else:
+                           print('asd')
 
             config = createConfig(zone_rules_writer, object_data, objectGroup_network_list,
                                       objectGroup_service_list,
