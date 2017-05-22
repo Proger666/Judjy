@@ -257,7 +257,7 @@ def zones():
                 try:
                     # find Zone name  for SRC based on IP
                     src_z_name = str(
-                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col]].values[0][2])
+                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[src_col], 'Zone_name'].values[0])
                 except IndexError:
                     data.set_value(index, 'src_zone_name',
                                    'UNKNOWN')
@@ -267,7 +267,7 @@ def zones():
                 try:
                     # find Zone name  for DST based on IP
                     dst_z_name = str(
-                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col]].values[0][2])
+                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == row[dst_col], 'Zone_name'].values[0])
                 except IndexError:
                     data.set_value(index, 'dst_zone_name',
                                    'UNKNOWN')
@@ -609,7 +609,7 @@ def zones():
                                src_net  = findSRCNet(xl_nets,src_ip, objectNetwork_tuple)
                                # Add object for this net if not present
                                if src_net not in objectNetwork_tuple['value']:
-                                   obj_name = src_net.split(' ')[0]+'_NET'
+                                   obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s +'_'+ src_net.split(' ')[0]
                                    obj_value = src_net
                                    obj_type = 'subnet'
                                    obj_description = 'Unspecified LAN Zone'
@@ -618,7 +618,7 @@ def zones():
                                else:
                                    obj_name = _findObjectName(object_data, src_net)
                                # Create SRV as NET object
-                               _tmp_dst_grp_obj = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + obj_name
+                               _tmp_dst_grp_obj = obj_name + '_NET'
                                # This is GROUP SRC object
                                if _tmp_dst_grp_obj not in objectGroup_network_list['obj_name']:
                                     _network_obj = GroupObject(_tmp_dst_grp_obj)
@@ -628,10 +628,10 @@ def zones():
                                # Add SRC_NET objects as member of this group
                                if not objectGroup_network_list['object'][
                                    objectGroup_network_list['obj_name'].index(_tmp_dst_grp_obj)].ismember(
-                                   _tmp_dst_grp_obj):
+                                   obj_name):
                                    objectGroup_network_list['object'][
                                        objectGroup_network_list['obj_name'].index(_tmp_dst_grp_obj)].addmember(
-                                       _tmp_dst_grp_obj)
+                                       obj_name)
                            _dst_obj = _findObjectName(object_data, row_dst[dst_col])
                            for src_object in src_objects:
                                _tmp_src_grp_obj = objectGroup_network_list['obj_name'][objectGroup_network_list['obj_name'].index(src_object)]
