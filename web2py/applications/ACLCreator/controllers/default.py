@@ -15,12 +15,12 @@ from os import path
 import xlsxwriter
 
 # TODO: GOD DAT UGLY!!! erase me
-set_name = ['Max SRC to same host','Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Sheets to analyze','New IP ADD Column','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
+set_name = ['Max SRC to same host','Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Sheets to analyze','New IP ADD Column','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
 set_value_def = ['5','1950,8000,6443,7444,8001,8513,44488,1900,1500,1947,1512,9872,8383,8080,3389,8443,21000,5355,2021,7403,5044,9872,15000,7301,4903,'
                  '7802,10201,22012,8027,2049,10555,10666','1024','auto_', 'Main,ABS+CRM,Processing,CASHIN,'
               'SWIFT+AZIPS,HOKS,Money Transfers,Test Segment', 'New IP address', '[', ']',
-             '0', 'obj-', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
+             '0', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
              'transport: Descending', 'VM', 'Ip addres']
 if not session.set_value or len(session.set_value) != len(set_name):
     session.set_value = set_value_def
@@ -41,7 +41,6 @@ seg_IP_col = session.set_value[session.set_name.index('IP ADDRESS column')]
 zone_sep_f = session.set_value[session.set_name.index('First Zone Sep.')]
 zone_sep_s = session.set_value[session.set_name.index('Closing Zone Sep.')]
 zonesubnetpref = session.set_value[session.set_name.index('Zone subnet empty pref')]
-dst_obj_pref = session.set_value[session.set_name.index('Destination obj prefix')]
 sheet_to_procc = session.set_value[session.set_name.index('Sheets to analyze')]
 serviceObjPref = session.set_value[session.set_name.index('Prefix for Service obj')]  # 'SERVICE_srv_'
 maxports = sorted(specific_ports, key=int, reverse=True)
@@ -357,6 +356,7 @@ def zones():
             ##########################BEGIN ZONE PROCESSING #######################
             index_service = 1
             index_srv_dst = 1
+            index_net = 1
             for zone_name in xl_dataframe['Zone_name'].unique():
                if zone_name in sheet_to_procc or zone_name == 'TEST1' or zone_name == 'TEST2' or zone_name == 'TEST3':
                 # Create objects for all VMs from segment_file
@@ -462,14 +462,19 @@ def zones():
                                 obj_value = 'NOT ASSIGNED'
                             _obj_name = data.loc[data[dst_col] == dst_port[0], ['dst_zone_name']].drop_duplicates()
                             _dst_zone_name = _obj_name.iloc[0]['dst_zone_name']
+                            loc_obj_new_value = 'No_new_value'
                             if _dst_zone_name != 'UNKNOWN':
                                 obj_name = objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0]
                                 obj_description = xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0] + ' from ' + _dst_zone_name
+                                try:
+                                    loc_obj_new_value = xl_dataframe.loc[xl_dataframe[seg_NEWIP_col] == dst_port[0]].values[0][0]
+                                except IndexError:
+                                    loc_obj_new_value = 'No_new_value'
                             else:
-                                obj_name = objPref + dst_obj_pref + dst_port[0]
+                                obj_name = objPref + '_' + zone_sep_f + 'LAN' + zone_sep_s + dst_port[0]
                                 obj_description = 'LAN host'
                             obj_type = 'host'
-                            create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,'No_new_value', 'No_zone_value')
+                            create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,loc_obj_new_value, 'No_zone_value')
 
                 # Make objects dataframe
                 object_data = pd.DataFrame(objectNetwork_tuple)
@@ -608,27 +613,36 @@ def zones():
                        else:
                            print('dest rules fix')
                            src_nets =[]
-                           src_objects = []
+                           # Create SRV as NET object
+                           _tmp_dst_grp_obj = 'LAN' + '_NETS_' + str(index_net)
+                           index_net += 1
+                           # This is GROUP SRC object
+                           if _tmp_dst_grp_obj not in objectGroup_network_list['obj_name']:
+                               _network_obj = GroupObject(_tmp_dst_grp_obj)
+                               objectGroup_network_list['obj_name'].append(_tmp_dst_grp_obj)
+                               objectGroup_network_list['object'].append(_network_obj)
+
+                           # Get all SRC net and add to group obj
                            for src_ip in row_dst[src_col].split(','):
                                src_net  = findSRCNet(xl_nets,src_ip, objectNetwork_tuple)
                                # Add object for this net if not present
                                if src_net not in objectNetwork_tuple['value']:
-                                   obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s +'_'+ src_net.split(' ')[0]
+                                   # Cast 172.0.0.0 255.255.255 -> 172.0.0.0/255.255.255
+                                   prefix = '/'.join(src_net.split(' '))
+                                   if any(xl_nets['Net_new'] == prefix):
+                                        prefix_name = xl_nets.loc[xl_nets['Net_new'] == prefix, 'New_new'].values[0]
+                                        obj_name = objPref + zone_sep_f + prefix_name + zone_sep_s +'_'+ src_net.split(' ')[0]
+                                        obj_description = 'LAN Zone ' + prefix_name
+
+                                   else:
+                                       _obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s +'_' +src_net.split(' ')[0]
+                                       obj_description = 'Unspecified LAN Zone'
                                    obj_value = src_net
                                    obj_type = 'subnet'
-                                   obj_description = 'Unspecified LAN Zone'
                                    create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,'No_new_value', 'No_zone_name')
-                                   object_data = pd.DataFrame(objectNetwork_tuple)
                                else:
                                    obj_name = _findObjectName(object_data, src_net)
-                               # Create SRV as NET object
-                               _tmp_dst_grp_obj = obj_name + '_NET'
-                               # This is GROUP SRC object
-                               if _tmp_dst_grp_obj not in objectGroup_network_list['obj_name']:
-                                    _network_obj = GroupObject(_tmp_dst_grp_obj)
-                                    objectGroup_network_list['obj_name'].append(_tmp_dst_grp_obj)
-                                    src_objects.append(_tmp_dst_grp_obj)
-                                    objectGroup_network_list['object'].append(_network_obj)
+                               object_data = pd.DataFrame(objectNetwork_tuple)
                                # Add SRC_NET objects as member of this group
                                if not objectGroup_network_list['object'][
                                    objectGroup_network_list['obj_name'].index(_tmp_dst_grp_obj)].ismember(
@@ -642,14 +656,20 @@ def zones():
                            objectGroup_service_list['obj_name'].append(_tmp_service_grp_obj_name)
                            objectGroup_service_list['dst'].append(row_dst[dst_col] + 'LAN')
                            objectGroup_service_list['object'].append(GroupObject(_tmp_service_grp_obj_name))
-                           addMembersToServiceOBJ(_tmp_service_grp_obj_name, row_dst[transport_col], row_dst[dstport_col],
-                                                  objectGroup_service_list)
+                           # get all uniq ports for this DST
+                           uq_ports_dst = row_dst[dstport_col].split(',')
+                           uq_transport_dst = row_dst[transport_col].split(',')
+                           _tmp_df = pd.DataFrame.from_dict(
+                               {dstport_col: uq_ports_dst, transport_col: uq_transport_dst})
+                           # Append all uniq ports to service object
+                           for index, srv_row in _tmp_df.iterrows():
+                               addMembersToServiceOBJ(_tmp_service_grp_obj_name, srv_row[transport_col],
+                                                      srv_row[dstport_col],
+                                                      objectGroup_service_list)
                            index_service += 1
-                           for src_object in src_objects:
-                               _tmp_src_grp_obj = objectGroup_network_list['obj_name'][objectGroup_network_list['obj_name'].index(src_object)]
-                               zone_rules_writer.append(
+                           zone_rules_writer.append(
                                     'access-list ' + 'LAN' + '_in extended permit object-group ' +
-                                    _tmp_service_grp_obj_name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
+                                    _tmp_service_grp_obj_name + ' object-group ' + _tmp_dst_grp_obj + ' object ' +
                                     _dst_obj)
             port_data = pd.DataFrame(objectPort_tuple)
             object_data = pd.DataFrame(objectNetwork_tuple)
