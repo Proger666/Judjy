@@ -464,7 +464,14 @@ def zones():
                             _dst_zone_name = _obj_name.iloc[0]['dst_zone_name']
                             loc_obj_new_value = 'No_new_value'
                             if _dst_zone_name != 'UNKNOWN':
-                                obj_name = objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0]
+                                # Check if obj name is adequate
+                                try:
+                                    obj_name_srv_name = str(
+                                        xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0], [seg_VM_col]].values[0][
+                                            0])
+                                except IndexError:
+                                    obj_name_srv_name = xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0]
+                                obj_name = objPref + zone_sep_f + _dst_zone_name + zone_sep_s + '_' + obj_name_srv_name
                                 obj_description = xl_dataframe.loc[xl_dataframe[seg_IP_col] == dst_port[0]].values[0][0] + ' from ' + _dst_zone_name
                                 try:
                                     loc_obj_new_value = xl_dataframe.loc[xl_dataframe[seg_NEWIP_col] == dst_port[0]].values[0][0]
@@ -705,7 +712,7 @@ def findObjName_for_lan(src_ip, objectNetwork_tuple, xl_nets):
 
 
 def create_Network_Object(xl_dataframe,objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone):
-    objectNetwork_tuple['obj_name'].append(re.sub('[ ,]', '_', obj_name) )
+    objectNetwork_tuple['obj_name'].append(re.sub('[ ,]', '_', obj_name))
     objectNetwork_tuple['type'].append(obj_type)
     objectNetwork_tuple['description'].append(obj_description)
     objectNetwork_tuple['value'].append(obj_value)
