@@ -629,17 +629,19 @@ def zones():
                                if src_net not in objectNetwork_tuple['value']:
                                    # Cast 172.0.0.0 255.255.255 -> 172.0.0.0/255.255.255
                                    prefix = '/'.join(src_net.split(' '))
-                                   if any(xl_nets['Net_new'] == prefix):
-                                        prefix_name = xl_nets.loc[xl_nets['Net_new'] == prefix, 'New_new'].values[0]
+                                   if any(xl_nets['Net_add'] == IP(prefix).strNormal()) or any(xl_nets['Net_new'] == IP(prefix).strNormal()):
+                                        prefix_name = xl_nets.loc[xl_nets['Net_new'] == IP(prefix).strNormal(), 'Net_name'].values[0]
+                                        _prefix_value = xl_nets.loc[xl_nets['Net_new'] == IP(prefix).strNormal(), 'Net_new'].values[0]
+                                        obj_new_value = ' '.join(str(IP(_prefix_value).strFullsize(2)).split('/'))
                                         obj_name = objPref + zone_sep_f + prefix_name + zone_sep_s +'_'+ src_net.split(' ')[0]
                                         obj_description = 'LAN Zone ' + prefix_name
-
                                    else:
-                                       _obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s +'_' +src_net.split(' ')[0]
+                                       obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s +'_' +src_net.split(' ')[0]
+                                       obj_new_value = 'No_new_value'
                                        obj_description = 'Unspecified LAN Zone'
                                    obj_value = src_net
                                    obj_type = 'subnet'
-                                   create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,'No_new_value', 'No_zone_name')
+                                   create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description, obj_new_value, 'No_zone_name')
                                else:
                                    obj_name = _findObjectName(object_data, src_net)
                                object_data = pd.DataFrame(objectNetwork_tuple)
