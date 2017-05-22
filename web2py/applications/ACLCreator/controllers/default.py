@@ -473,18 +473,7 @@ def zones():
                             else:
                                 # try find name of the subnet
                                 #find src of this IP
-                                src_net = findSRCNet(xl_nets, dst_port[0], objectNetwork_tuple)
-                                # Cast 172.0.0.0 255.255.255 -> 172.0.0.0/255.255.255
-                                prefix = '/'.join(src_net.split(' '))
-                                if any(xl_nets['Net_add'] == IP(prefix).strNormal()) or any(
-                                                xl_nets['Net_new'] == IP(prefix).strNormal()):
-                                    prefix_name = \
-                                    xl_nets.loc[xl_nets['Net_new'] == IP(prefix).strNormal(), 'Net_name'].values[0]
-                                    obj_description = 'LAN Zone ' + prefix_name
-                                    obj_name = objPref + zone_sep_f + prefix_name + zone_sep_s + '_' + dst_port[0]
-                                else:
-                                    obj_name = objPref  + zone_sep_f + 'LAN' + zone_sep_s +'_'+ dst_port[0]
-                                    obj_description = 'LAN host'
+                                obj_description, obj_name = findObjName_for_lan(dst_port[0], objectNetwork_tuple, xl_nets)
                             obj_type = 'host'
                             create_Network_Object(xl_dataframe,objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,loc_obj_new_value, 'No_zone_value')
 
@@ -575,8 +564,8 @@ def zones():
                            if src_ip not in objectNetwork_tuple['value']:
                                if validate_ip(src_ip):
                                    obj_value = src_ip
-                                   obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + src_ip
-                                   obj_description = 'LAN host'
+                                   obj_description, obj_name = findObjName_for_lan(src_ip, objectNetwork_tuple,
+                                                                                   xl_nets)
                                    obj_type = 'host'
                                    create_Network_Object(xl_dataframe,objectNetwork_tuple, obj_name, obj_type, obj_value,
                                                          obj_description, 'No_new_value', 'No_zone_value')
@@ -697,6 +686,22 @@ def zones():
 
         redirect(URL('default', 'acl', vars={'segment_file': f_id, 'filename': request.vars.filename}))
     return locals()
+
+
+def findObjName_for_lan(src_ip, objectNetwork_tuple, xl_nets):
+    src_net = findSRCNet(xl_nets, src_ip, objectNetwork_tuple)
+    # Cast 172.0.0.0 255.255.255 -> 172.0.0.0/255.255.255
+    prefix = '/'.join(src_net.split(' '))
+    if any(xl_nets['Net_add'] == IP(prefix).strNormal()) or any(
+                    xl_nets['Net_new'] == IP(prefix).strNormal()):
+        prefix_name = \
+            xl_nets.loc[xl_nets['Net_new'] == IP(prefix).strNormal(), 'Net_name'].values[0]
+        obj_description = 'LAN Zone ' + prefix_name
+        obj_name = objPref + zone_sep_f + prefix_name + zone_sep_s + '_' + src_ip
+    else:
+        obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + src_ip
+        obj_description = 'LAN host'
+    return obj_description, obj_name
 
 
 def create_Network_Object(xl_dataframe,objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone):
