@@ -633,11 +633,19 @@ def zones():
                                        objectGroup_network_list['obj_name'].index(_tmp_dst_grp_obj)].addmember(
                                        obj_name)
                            _dst_obj = _findObjectName(object_data, row_dst[dst_col])
+                           # create service object
+                           _tmp_service_grp_obj_name = serviceObjPref + str(index_service)
+                           objectGroup_service_list['obj_name'].append(_tmp_service_grp_obj_name)
+                           objectGroup_service_list['dst'].append(row_dst[dst_col] + 'LAN')
+                           objectGroup_service_list['object'].append(GroupObject(_tmp_service_grp_obj_name))
+                           addMembersToServiceOBJ(_tmp_service_grp_obj_name, row_dst[transport_col], row_dst[dstport_col],
+                                                  objectGroup_service_list)
+                           index_service += 1
                            for src_object in src_objects:
                                _tmp_src_grp_obj = objectGroup_network_list['obj_name'][objectGroup_network_list['obj_name'].index(src_object)]
                                zone_rules_writer.append(
                                     'access-list ' + 'LAN' + '_in extended permit object-group ' +
-                                    row_dst[dstport_col] + ' object-group ' + _tmp_src_grp_obj + ' object ' +
+                                    _tmp_service_grp_obj_name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                     _dst_obj)
             config = createConfig(zone_rules_writer, object_data, objectGroup_network_list,
                                       objectGroup_service_list,
