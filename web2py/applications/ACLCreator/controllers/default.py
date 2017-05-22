@@ -571,10 +571,12 @@ def zones():
                            objectGroup_service_list['object'].append(GroupObject(_tmp_service_grp_obj_name))
                            index_service += 1
                            # get all uniq ports for this DST
-                           uniq_ports_dst = row_dst[dstport_col].split(',')
+                           uq_ports_dst = row_dst[dstport_col].split(',')
+                           uq_transport_dst = row_dst[transport_col].split(',')
+                           _tmp_df = pd.DataFrame.from_dict({dstport_col:uq_ports_dst,transport_col:uq_transport_dst})
                            # Append all uniq ports to service object
-                           for port in uniq_ports_dst:
-                               addMembersToServiceOBJ(_tmp_service_grp_obj_name, row_dst[transport_col], port,
+                           for index, srv_row in _tmp_df.iterrows():
+                               addMembersToServiceOBJ(_tmp_service_grp_obj_name, srv_row[transport_col], srv_row[dstport_col],
                                                       objectGroup_service_list)
                            # Create DST SRV_<srv_name> object for SRC if not exist
                            _tmp_src_grp_obj = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + 'srv_' + str(index_srv_dst)
