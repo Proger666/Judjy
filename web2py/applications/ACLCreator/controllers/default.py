@@ -17,7 +17,7 @@ import xlsxwriter
 # TODO: GOD DAT UGLY!!! erase me
 set_name = ['Max SRC to same host','Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Sheets to analyze','New IP ADD Column','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Destination obj prefix','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
 session.set_name = set_name
-set_value_def = ['5','1900,1500,1947,1512,9872,8383,8080,3389,8443,21000,5355,2021,7403,5044,9872,15000,7301,4903,'
+set_value_def = ['5','1950,8000,6443,7444,8001,8513,44488,1900,1500,1947,1512,9872,8383,8080,3389,8443,21000,5355,2021,7403,5044,9872,15000,7301,4903,'
                  '7802,10201,22012,8027,2049,10555,10666','1024','auto_', 'Main,ABS+CRM,Processing,CASHIN,'
               'SWIFT+AZIPS,HOKS,Money Transfers,Test Segment', 'New IP address', '[', ']',
              '0', 'obj-', 'DM_INLINE_SERVICE_', 'source.ip: Descending', 'dest.ip: Descending', 'dest.port: Descending',
@@ -115,11 +115,11 @@ def createConfig(zones_rules, object_data, objectGroup_network_list, objectGroup
     result = []
     # create all objects
     for index, row in object_data.iterrows():
-        result.append('object network ' + row['obj_name'] + '\n' +
+        result.append('object network ' + re.sub('[ ,]', '_', row['obj_name'])  + '\n' +
                       row['type'] + ' ' + row['new_value'] + '\n' +
                       'description ' + row['description'])
     for index, row in port_data.iterrows():
-        result.append('object service ' + row['obj_name'] + '\n' +
+        result.append('object service ' + re.sub('[ ,]', '_', row['obj_name']) + '\n' +
                       row['value'])
     for row in objectGroup_service_list['object']:
         _str_tmp = 'object-group service ' + row.name + '\n'
@@ -487,8 +487,8 @@ def zones():
                             zone_rules_writer.append(
                                 'access-list ' + re.sub(' ', '_',
                                                         zone_name.capitalize()) + '_in extended permit object-group '
-                                + _service_obj.name + ' object-group ' + _findObjectName(object_data,
-                                                                                         zone_NET) + ' object-group ' + _dst_obj)
+                                + _service_obj.name + ' object ' + _findObjectName(object_data,
+                                                                                         zone_NET) + ' object ' + _dst_obj)
                         else:
                             grouped = source_tree.loc[source_tree[dst_col] == dest_port, [src_col]]
 
@@ -524,7 +524,8 @@ def zones():
                                 _dst_obj)
                         index_srv += 1
                 zone_rules_writer.append(
-                        'access-list ' + zone_name.capitalize() + '_in extended permit ip any any log 6 interval 300')
+                        'access-list ' + re.sub('[ ,]', '_',
+                                                        zone_name.capitalize()) + '_in extended permit ip any any log 6 interval 300')
                 ######################## DESTINATION RULES ##################
                 ### sorting for destination rules
                 _dst_rul = dest_tree.groupby(by=[src_col, dst_col, transport_col])[dstport_col].apply(
@@ -599,6 +600,7 @@ def zones():
                                        objectGroup_network_list['obj_name'].index(_tmp_src_grp_obj)].addmember(
                                        _tmp_src_obj_name)
                            _dst_obj = _findObjectName(object_data, row_dst[dst_col])
+                           # Group to single DST object
                            zone_rules_writer.append(
                                'access-list ' + 'LAN' + '_in extended permit object-group ' +
                                _tmp_service_grp_obj_name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
@@ -649,6 +651,8 @@ def zones():
                                     'access-list ' + 'LAN' + '_in extended permit object-group ' +
                                     _tmp_service_grp_obj_name + ' object-group ' + _tmp_src_grp_obj + ' object ' +
                                     _dst_obj)
+            port_data = pd.DataFrame(objectPort_tuple)
+            object_data = pd.DataFrame(objectNetwork_tuple)
             config = createConfig(zone_rules_writer, object_data, objectGroup_network_list,
                                       objectGroup_service_list,
                                       port_data)
@@ -662,7 +666,7 @@ def zones():
 
 
 def create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone):
-    objectNetwork_tuple['obj_name'].append(obj_name)
+    objectNetwork_tuple['obj_name'].append(re.sub('[ ,]', '_', obj_name) )
     objectNetwork_tuple['type'].append(obj_type)
     objectNetwork_tuple['description'].append(obj_description)
     objectNetwork_tuple['value'].append(obj_value)
