@@ -374,7 +374,7 @@ def zones():
                         obj_description = re.sub('[ ,]', '_', row[seg_VM_col]) + ' from ' + row['Zone_name']
                         obj_type = 'host'
                         obj_zone = zone_name
-                        create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone)
+                        create_Network_Object(xl_dataframe,objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone)
                 # create group object for zone_ip
                 # clear zone name from garbage
                 zone_name = re.sub('[ ,]', '_', zone_name)
@@ -397,7 +397,7 @@ def zones():
                 obj_value = zone_NET
                 obj_description = 'Zone ' + zone_name + ' subnet'
                 obj_zone = zone_name
-                create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value,obj_description, 'No_new_value', obj_zone)
+                create_Network_Object(xl_dataframe,objectNetwork_tuple, obj_name,obj_type,obj_value,obj_description, 'No_new_value', obj_zone)
 
 
 
@@ -471,10 +471,22 @@ def zones():
                                 except IndexError:
                                     loc_obj_new_value = 'No_new_value'
                             else:
-                                obj_name = objPref + '_' + zone_sep_f + 'LAN' + zone_sep_s + dst_port[0]
-                                obj_description = 'LAN host'
+                                # try find name of the subnet
+                                #find src of this IP
+                                src_net = findSRCNet(xl_nets, dst_port[0], objectNetwork_tuple)
+                                # Cast 172.0.0.0 255.255.255 -> 172.0.0.0/255.255.255
+                                prefix = '/'.join(src_net.split(' '))
+                                if any(xl_nets['Net_add'] == IP(prefix).strNormal()) or any(
+                                                xl_nets['Net_new'] == IP(prefix).strNormal()):
+                                    prefix_name = \
+                                    xl_nets.loc[xl_nets['Net_new'] == IP(prefix).strNormal(), 'Net_name'].values[0]
+                                    obj_description = 'LAN Zone ' + prefix_name
+                                    obj_name = objPref + zone_sep_f + prefix_name + zone_sep_s + '_' + dst_port[0]
+                                else:
+                                    obj_name = objPref  + zone_sep_f + 'LAN' + zone_sep_s +'_'+ dst_port[0]
+                                    obj_description = 'LAN host'
                             obj_type = 'host'
-                            create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,loc_obj_new_value, 'No_zone_value')
+                            create_Network_Object(xl_dataframe,objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description,loc_obj_new_value, 'No_zone_value')
 
                 # Make objects dataframe
                 object_data = pd.DataFrame(objectNetwork_tuple)
@@ -566,7 +578,7 @@ def zones():
                                    obj_name = objPref + zone_sep_f + 'LAN' + zone_sep_s + '_' + src_ip
                                    obj_description = 'LAN host'
                                    obj_type = 'host'
-                                   create_Network_Object(objectNetwork_tuple, obj_name, obj_type, obj_value,
+                                   create_Network_Object(xl_dataframe,objectNetwork_tuple, obj_name, obj_type, obj_value,
                                                          obj_description, 'No_new_value', 'No_zone_value')
                        object_data = pd.DataFrame(objectNetwork_tuple)
                        if len(uniq_src_dst) <= int(sameIPhost):
@@ -641,7 +653,7 @@ def zones():
                                        obj_description = 'Unspecified LAN Zone'
                                    obj_value = src_net
                                    obj_type = 'subnet'
-                                   create_Network_Object(objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description, obj_new_value, 'No_zone_name')
+                                   create_Network_Object(xl_dataframe,objectNetwork_tuple,obj_name,obj_type,obj_value,obj_description, obj_new_value, 'No_zone_name')
                                else:
                                    obj_name = _findObjectName(object_data, src_net)
                                object_data = pd.DataFrame(objectNetwork_tuple)
@@ -687,7 +699,7 @@ def zones():
     return locals()
 
 
-def create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone):
+def create_Network_Object(xl_dataframe,objectNetwork_tuple, obj_name,obj_type,obj_value, obj_description, obj_new_value,obj_zone):
     objectNetwork_tuple['obj_name'].append(re.sub('[ ,]', '_', obj_name) )
     objectNetwork_tuple['type'].append(obj_type)
     objectNetwork_tuple['description'].append(obj_description)
@@ -696,10 +708,16 @@ def create_Network_Object(objectNetwork_tuple, obj_name,obj_type,obj_value, obj_
         objectNetwork_tuple['zone'].append(obj_zone)
     else:
         objectNetwork_tuple['zone'].append('None')
-    if obj_new_value != 'No_new_value':
-        objectNetwork_tuple['new_value'].append(obj_new_value)
+    if obj_new_value == 'No_new_value':
+        # Try to find new value
+        try:
+            loc_obj_new_value = str(xl_dataframe.loc[xl_dataframe[seg_IP_col] == obj_value, [seg_NEWIP_col]].values[0][0])
+            objectNetwork_tuple['new_value'].append(loc_obj_new_value)
+        except IndexError:
+            loc_obj_new_value = obj_value
+            objectNetwork_tuple['new_value'].append(loc_obj_new_value)
     else:
-        objectNetwork_tuple['new_value'].append(obj_value)
+        objectNetwork_tuple['new_value'].append(obj_new_value)
 
 
 
