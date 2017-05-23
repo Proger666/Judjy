@@ -2,7 +2,7 @@
         <form action="#" enctype="multipart/form-data" method="post">
 
                <div class="col-md-5">
-                      Segment File <input type='file' name="segment_file" />
+                      Segment File <input type='file' name="segment_file" class="btn btn-primary btn-round" />
                     <table class="table table-responsive table-hover">
                  <thead>
                  <tr>
@@ -15,6 +15,7 @@
                      <td><a onclick="getInputFields(this)" href="{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename, 'do_acl':'True'})}}">{{=row.f_name}}</a></td>
                  </tr>
                  {{pass}}
+                      <input type="submit" value="Send Segment File" class="btn btn-primary btn-round btn-success" />
 
                  </tbody>
              </table>
@@ -22,10 +23,9 @@
             <div class="col-md-7">
             </div>
 
-                      <input type="submit" value="Send Segment File" />
                       <input type="hidden" name="_formname" value="test" />
         </form>
-        <button class="btn btn-primary btn-round" type="button" onclick="document.location='{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename, 'do_acl':'True'})}}'"> GO !</button>
+        <button class="btn btn-primary btn-circle btn-xl" type="button" onclick="document.location='{{=URL('default', 'zones', vars={'segment_file':row.f_name, 'filename':request.vars.filename, 'do_acl':'True'})}}'"> <span class="glyphicon glyphicon-play"></span></button>
         <div class="col-md-7">
         <table class="table hover">
             <thead>
