@@ -54,8 +54,8 @@ def setUpModule():
         for ctr in ('appadmin', 'default'):
             open(abspath('applications', 'welcome',
                  'controllers', '%s.py' % ctr), 'w').close()
-        #  create an app-specific routes.py for examples app
-        routes = open(abspath('applications', 'examples', 'routes.py'), 'w')
+        #  create an app-specific router.py for examples app
+        routes = open(abspath('applications', 'examples', 'router.py'), 'w')
         routes.write("default_function='exdef'\n")
         routes.close()
 
@@ -139,9 +139,9 @@ routes_in = (
 
     def test_routes_specific(self):
         """
-        Test app-specific routes.py
+        Test app-specific router.py
 
-        Note that make_apptree above created applications/examples/routes.py with a default_function.
+        Note that make_apptree above created applications/examples/router.py with a default_function.
         """
         data = r'''
 routes_app = [

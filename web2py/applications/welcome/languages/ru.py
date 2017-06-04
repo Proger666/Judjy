@@ -48,6 +48,7 @@
 'Community': 'Community',
 'Components and Plugins': 'Components and Plugins',
 'Config.ini': 'Config.ini',
+'Confirm Password': 'Confirm Password',
 'Controller': 'Controller',
 'Copyright': 'Copyright',
 'Current request': 'Текущий запрос',

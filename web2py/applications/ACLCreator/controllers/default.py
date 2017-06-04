@@ -1,18 +1,13 @@
 # -*- coding: utf-8 -*-
 ### required - do no delete
-import datetime
-
 import StringIO
-
-import re
-
-from IPy import IP
-from pip._vendor.requests.packages.urllib3.util import url
-import pandas as pd
 import csv
-import io
+import datetime
+import re
 from os import path
-import xlsxwriter
+
+import pandas as pd
+from IPy import IP
 
 # TODO: GOD DAT UGLY!!! erase me
 set_name = ['Max SRC to same host','Specific ports add to analyze','Maxium \'STATIC\' port','Object preference','Sheets to analyze','New IP ADD Column','First Zone Sep.','Closing Zone Sep.','Zone subnet empty pref','Prefix for Service obj','Source IP column', 'Destination IP column', 'Destination PORT column', 'PROTOCOL column', 'VM name column', 'IP ADDRESS column']
@@ -821,3 +816,34 @@ def data_manage():
 def cache_manage():
     form = SQLFORM.smartgrid(db.t_cache, onupdate=auth.archive)
     return locals()
+
+
+def handle_error():
+    """ Custom error handler that returns correct status codes."""
+
+    code = request.vars.code
+    request_url = request.vars.request_url
+    ticket = request.vars.ticket
+
+    if code is not None and request_url != request.url:  # Make sure error url is not current url to avoid infinite loop.
+        response.status = int(code)  # Assign the error status code to the current response. (Must be integer to work.)
+
+    if code == '403':
+        return "Not authorized"
+    elif code == '404':
+        return "Not found"
+    elif code == '500':
+
+        # Get ticket URL:
+        ticket_url = "<a href='%(scheme)s://%(host)s/admin/default/ticket/%(ticket)s' target='_blank'>%(ticket)s</a>" % {
+            'scheme': 'https', 'host': request.env.http_host, 'ticket': ticket}
+
+        # Email a notice, etc:
+        mail.send(to=['admins@myapp.com '],
+                  subject="New Error",
+                  message="Error Ticket:  %s" % ticket_url)
+
+        return "Server error"
+
+    else:
+        return "Other error"

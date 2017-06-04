@@ -8,11 +8,11 @@
 
 gluon.rewrite parses incoming URLs and formats outgoing URLs for gluon.html.URL.
 
-In addition, it rewrites both incoming and outgoing URLs based on the (optional) user-supplied routes.py,
+In addition, it rewrites both incoming and outgoing URLs based on the (optional) user-supplied router.py,
 which also allows for rewriting of certain error messages.
 
-routes.py supports two styles of URL rewriting, depending on whether 'routers' is defined.
-Refer to router.example.py and routes.example.py for additional documentation.
+router.py supports two styles of URL rewriting, depending on whether 'routers' is defined.
+Refer to router.example.py and router.py for additional documentation.
 
 """
 
@@ -111,7 +111,7 @@ routers = None
 
 
 def log_rewrite(string):
-    """Log rewrite activity under control of routes.py"""
+    """Log rewrite activity under control of router.py"""
     if params.logging == 'debug':   # catch common cases first
         logger.debug(string)
     elif params.logging == 'off' or not params.logging:
@@ -280,12 +280,12 @@ def try_redirect_on_error(http_object, request, ticket=None):
     return http_object
 
 
-def load(routes='routes.py', app=None, data=None, rdict=None):
+def load(routes='router.py', app=None, data=None, rdict=None):
     """
     load: read (if file) and parse routes
     store results in params
     (called from main.py at web2py initialization time)
-    If data is present, it's used instead of the routes.py contents.
+    If data is present, it's used instead of the router.py contents.
     If rdict is present, it must be a dict to be used for routers (unit test)
     """
     global params
@@ -357,7 +357,7 @@ def load(routes='routes.py', app=None, data=None, rdict=None):
 
         #  scan each app in applications/
         #    create a router, if routers are in use
-        #    parse the app-specific routes.py if present
+        #    parse the app-specific router.py if present
         #
         all_apps = []
         apppath = abspath('applications')

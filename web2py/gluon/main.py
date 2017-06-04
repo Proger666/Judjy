@@ -54,7 +54,7 @@ from gluon.globals import current
 #  gluon_parent is the directory containing gluon, web2py.py, logging.conf
 #  and the handlers.
 #  applications_parent (web2py_path) is the directory containing applications/
-#  and routes.py
+#  and router.py
 #  The two are identical unless web2py_path is changed via the web2py.py -f folder option
 #  main.web2py_path is the same as applications_parent (for backward compatibility)
 

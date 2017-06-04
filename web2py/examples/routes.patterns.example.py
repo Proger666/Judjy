@@ -4,14 +4,14 @@
 # are used when the respective element is missing from the
 # (possibly rewritten) incoming URL
 #
-default_application = 'init'    # ordinarily set in base routes.py
-default_controller = 'default'  # ordinarily set in app-specific routes.py
-default_function = 'index'      # ordinarily set in app-specific routes.py
+default_application = 'init'    # ordinarily set in base router.py
+default_controller = 'default'  # ordinarily set in app-specific router.py
+default_function = 'index'      # ordinarily set in app-specific router.py
 
 # routes_app is a tuple of tuples.  The first item in each is a regexp that will
 # be used to match the incoming request URL. The second item in the tuple is
 # an applicationname.  This mechanism allows you to specify the use of an
-# app-specific routes.py. This entry is meaningful only in the base routes.py.
+# app-specific router.py. This entry is meaningful only in the base router.py.
 #
 # Example: support welcome, admin, app and myapp, with myapp the default:
 
@@ -114,7 +114,7 @@ logging = 'debug'
 
 def __routes_doctest():
     '''
-    Dummy function for doctesting routes.py.
+    Dummy function for doctesting router.py.
 
     Use filter_url() to test incoming or outgoing routes;
     filter_err() for error redirection.

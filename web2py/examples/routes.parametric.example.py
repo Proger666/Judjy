@@ -4,9 +4,9 @@
 #
 #  For each request, the effective router is:
 #    the built-in default base router (shown below),
-#    updated by the BASE router in routes.py routers,
-#    updated by the app-specific router in routes.py routers (if any),
-#    updated by the app-specific router from applications/app/routes.py routers (if any)
+#    updated by the BASE router in router.py routers,
+#    updated by the app-specific router in router.py routers (if any),
+#    updated by the app-specific router from applications/app/router.py routers (if any)
 #
 #
 #  Router members:
@@ -149,7 +149,7 @@ logging = 'debug'
 
 def __routes_doctest():
     '''
-    Dummy function for doctesting routes.py.
+    Dummy function for doctesting router.py.
 
     Use filter_url() to test incoming or outgoing routes;
     filter_err() for error redirection.

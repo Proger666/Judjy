@@ -26,7 +26,7 @@ http://domain1.com/static/...   /app1/static/...
 
 and vice-versa.
 
-To use, cp scripts/autoroutes.py routes.py
+To use, cp scripts/autoroutes.py router.py
 
 and either edit the config string below, or set config = "" and edit routes.conf
 '''

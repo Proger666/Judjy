@@ -56,8 +56,8 @@ def setUpModule():
             open(abspath('applications', 'welcome',
                  'controllers', '%s.py' % ctr), 'w').close()
 
-        #  create an app-specific routes.py for examples app
-        routes = open(abspath('applications', 'examples', 'routes.py'), 'w')
+        #  create an app-specific router.py for examples app
+        routes = open(abspath('applications', 'examples', 'router.py'), 'w')
         routes.write("routers=dict(examples=dict(default_function='exdef'))")
         routes.close()
 
@@ -160,9 +160,9 @@ class TestRouter(unittest.TestCase):
 
     def test_router_specific(self):
         """
-        Test app-specific routes.py
+        Test app-specific router.py
 
-        Note that make_apptree above created applications/examples/routes.py with a default_function.
+        Note that make_apptree above created applications/examples/router.py with a default_function.
         """
         load(rdict=dict())
         self.assertEqual(

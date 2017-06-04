@@ -384,9 +384,9 @@ def pack_exe(app, base, filenames=None):
     out = StringIO()
     out.write(urllib.urlopen(download_url).read())
     web2py_win = zipfile.ZipFile(out, mode='a')
-    # Write routes.py with the application as default
+    # Write router.py with the application as default
     routes = u'# -*- coding: utf-8 -*-\nrouters = dict(BASE=dict(default_application="%s"))' % app
-    web2py_win.writestr('web2py/routes.py', routes.encode('utf-8'))
+    web2py_win.writestr('web2py/router.py', routes.encode('utf-8'))
     # Copy the application into the zipfile
     common_root = os.path.dirname(base)
     for filename in filenames:
@@ -1857,7 +1857,7 @@ def user():
 
 
 def reload_routes():
-    """ Reload routes.py """
+    """ Reload router.py """
     import gluon.rewrite
     gluon.rewrite.load()
     redirect(URL('site'))
