@@ -130,7 +130,9 @@ def createConfig(zones_rules, object_data, objectGroup_network_list, objectGroup
     return result
 
 def set_session_settings():
-    session.set_value = request.vars['set_value' + '[]']
+    for value, name in zip(request.vars['set_value' + '[]'], request.vars['set_name' + '[]']):
+        session.set_value[session.set_name.index(name)] = value
+
     response.flash = 'Settings set'
 
 
@@ -165,7 +167,6 @@ def zones():
         redirect(URL('default', 'zones', vars={'filename':request.vars.filename}))
     else:
         try:
-
             last_record = db(db.t_data.id > 0 and db.t_data.f_name.like('%DBSG%')).select(orderby=~db.t_data.id, limitby=(0, 1)).first().id
             xl = pd.ExcelFile(db.t_data.f_data.retrieve(db(db.t_data.id == last_record).select().first().f_data)[1])
             # Load latest files from DB and get sheets from it
@@ -246,6 +247,7 @@ def zones():
         if not _tmp_row:
             # REMOVE BIG PORST from data
             data = initial_data[initial_data[dstport_col] < maxPorts]
+            data = initial_data[initial_data[dstport_col] > 0 ]
             # Tag everything with src zone and dst zone
             for index, row in data.iterrows():
                 try:
@@ -768,12 +770,19 @@ def table():
 
 ### end requires
 def index():
+
+    #### INIT ####
     current_files = db(db.t_data.f_name.like('%DBDT%')).select()
+    ## Get last record from DB and for redirect
+    ports = db(db.t_data.id > 0 and db.t_data.f_name.like('%DBDT%')).select(orderby=~db.t_data.id, limitby=(0, 1)).first().f_ports
+    f_id = db(db.t_data.id > 0 and db.t_data.f_name.like('%DBDT%')).select(orderby=~db.t_data.id, limitby=(0, 1)).first().f_name
+    set_value = session.set_value
+    default_set_value = set_value_def
+
     if request.vars.csv_file is not '' and len(request.vars) is not 0:
         f_id = str(datetime.datetime.now().microsecond) + request.vars.csv_file.filename + 'DBDT'
         db.t_data.insert(f_data=request.vars.csv_file, f_name=f_id, f_ports=request.vars.ports)
         db.commit()
-        redirect(URL('default', 'table', vars={'filename': f_id, 'ports': request.vars.ports}))
     return locals()
 
 
